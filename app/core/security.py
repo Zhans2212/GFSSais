@@ -1,0 +1,59 @@
+from app.models.user import User
+from app.utils.roles import admin_post, operator_post, guest_post
+from datetime import datetime, timedelta
+from jose import jwt
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from app.config import settings
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=8)):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def build_user_from_sso(src_user: dict) -> User:
+    if not all(k in src_user for k in ["login_name", "fio", "dep_name", "post"]):
+        raise HTTPException(status_code=403, detail="Invalid SSO data")
+
+    username = src_user["login_name"]
+    dep_name = src_user["dep_name"]
+    post = src_user["post"]
+
+    roles = []
+    top_control = 0
+
+    if post in admin_post.keys():
+        roles.append("Admin")
+        top_control = 2
+    elif post in operator_post.keys():
+        roles.append("Operator")
+        top_control = 1
+    else:
+        roles.append("Guest")
+        # raise HTTPException(status_code=403, detail="No role defined")
+
+    return User(
+        username=username,
+        fio=src_user["fio"],
+        dep_name=dep_name,
+        post=post,
+        rfbn_id=src_user.get("rfbn_id"),
+        roles=roles,
+        top_control=top_control
+    )
