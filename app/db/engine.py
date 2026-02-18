@@ -2,28 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import oracledb
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-from urllib.parse import quote_plus
-from app.db.models import Base
 
 # Optional: thin mode (default)
 # oracledb.init_oracle_client(lib_dir="path_to_instant_client")  # only if thick mode
 
-def _require_env(name: str) -> str:
-    value = os.getenv(name)
-    if value is None or value.strip() == "":
-        raise RuntimeError(
-            f"Missing required environment variable: {name}. "
-            f"Set it in your .env file or in the OS environment."
-        )
-    return value
+dotenv_path = Path('app/.env')
+load_dotenv(dotenv_path=dotenv_path)
 
-
-DB_USER = "dasorp_test"
-DB_PASSWORD = "dasorp"
-DB_HOST = "192.168.20.60"
-DB_PORT = "1521"
-DB_SERVICE = "gfssdb.gfss.kz"
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_SERVICE = os.getenv('DB_SERVICE')
 
 DATABASE_URL = (
     f"oracle+oracledb://{DB_USER}:{DB_PASSWORD}"
