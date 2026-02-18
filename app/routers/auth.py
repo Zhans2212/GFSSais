@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
 from app.config import templates
 from app.core.sso_client import sso_login, sso_logout
-from app.core.security import create_access_token
+from app.core.security import create_access_token, get_current_user_optional
 from app.core.security import build_user_from_sso
 from app.db.engine import get_db
 
@@ -20,6 +20,11 @@ class LoginRequest(BaseModel):
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request)
+
+    if user:
+        return RedirectResponse("/reports", status_code=303)
+
     return templates.TemplateResponse(
         "reports/login.html",
         {"request": request}
@@ -27,6 +32,12 @@ async def home(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/auth")
 async def login(payload: LoginRequest, request: Request):
+    user = get_current_user_optional(request)
+
+    if user:
+        return RedirectResponse("/reports", status_code=303)
+
+
     ip = request.client.host
     print(f'/LOGIN. client: {ip}')
 
@@ -73,6 +84,6 @@ async def logout(request: Request):
     ip = request.client.host
     sso_logout(ip)
 
-    response = JSONResponse(content={"message": "logged out"})
+    response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("access_token")
     return response

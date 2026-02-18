@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user_optional
@@ -11,22 +9,13 @@ from app.config import templates
 
 router = APIRouter()
 
-def require_user_for_html(request: Request):
-    """
-    Для HTML-страниц: если не авторизован — редирект на / (логин).
-    Если авторизован — вернёт payload пользователя.
-    """
-    user = get_current_user_optional(request)
-    if not user:
-        raise HTTPException(
-            status_code=303,
-            headers={"Location": "/login"},
-            detail="Not authenticated",
-        )
-    return user
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request, db: Session = Depends(get_db), user=Depends(require_user_for_html)):
+async def home(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
     refunds = db.query(ApprovedRefund).all()
 
     return templates.TemplateResponse(
@@ -35,7 +24,7 @@ async def home(request: Request, db: Session = Depends(get_db), user=Depends(req
     )
 
 @router.get("/person/{iin}")
-async def get_person(iin: str, db: Session = Depends(get_db), user=Depends(require_user_for_html)):
+async def get_person(iin: str, db: Session = Depends(get_db)):
     person = db.query(Person).filter(Person.iin == iin).first()
 
     if not person:
