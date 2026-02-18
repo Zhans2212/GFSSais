@@ -12,17 +12,6 @@ app = FastAPI()
 
 setup_static(app)
 
-app.include_router(
-    reports.router,
-    prefix="/reports",
-    tags=["Reports"]
-)
-app.include_router(auth.router)
+app.include_router(reports.router, prefix="/reports", tags=["Reports"])
+app.include_router(auth.router, prefix="/login", tags=["Login"])
 app.include_router(users.router)
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request, db: Session = Depends(get_db)):
-    return templates.TemplateResponse(
-        "reports/login.html",
-        {"request": request}
-    )

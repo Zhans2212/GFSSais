@@ -1,10 +1,14 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
+from app.config import templates
 from app.core.sso_client import sso_login, sso_logout
 from app.core.security import create_access_token
 from app.core.security import build_user_from_sso
+from app.db.engine import get_db
 
 router = APIRouter()
 
@@ -13,7 +17,15 @@ class LoginRequest(BaseModel):
     username: str = Field(validation_alias="username")
     password: str
 
-@router.post("/login")
+
+@router.get("/", response_class=HTMLResponse)
+async def home(request: Request, db: Session = Depends(get_db)):
+    return templates.TemplateResponse(
+        "reports/login.html",
+        {"request": request}
+    )
+
+@router.post("/user")
 async def login(payload: LoginRequest, request: Request):
     ip = request.client.host
     print(f'/LOGIN. client: {ip}')
@@ -38,10 +50,21 @@ async def login(payload: LoginRequest, request: Request):
         }
     )
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+    )
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # True если будет HTTPS
+        max_age=8 * 60 * 60,
+    )
+    return response
 
 
 
@@ -51,5 +74,5 @@ async def logout(request: Request):
     sso_logout(ip)
 
     response = JSONResponse(content={"message": "logged out"})
-    response.delete_cookie("user")
+    response.delete_cookie("access_token")
     return response
