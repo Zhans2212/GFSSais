@@ -25,7 +25,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
         {"request": request}
     )
 
-@router.post("/user")
+@router.post("/auth")
 async def login(payload: LoginRequest, request: Request):
     ip = request.client.host
     print(f'/LOGIN. client: {ip}')
