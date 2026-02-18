@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- name of each tab group should be unique -->
+<div class="tabs tabs-border">
+  <input type="radio" name="my_tabs_2" class="tab" aria-label="Возвраты СО" checked="checked"/>
+  <div class="tab-content border-base-300 bg-base-100 p-10">
+    <div class="flex justify-between items-end">
+      <div class="grid grid-rows-2 gap-4 ml-2 mb-5">
+        <label class="select outline-none text-secondary-content">
+          <span class="label">Статус</span>
+          <select id="select-status">
+            <option>Все записи</option>
+            <option>1 - Документ принят</option>
+            <option>2 - Документ одобрен</option>
+            <option>3 - Документ передан в 1С</option>
+            <option>5 - Отказ в возврате</option>
+            <option>100 - Отклонен оператором</option>
+          </select>
+        </label>
+
+        <label class="select outline-none text-secondary-content">
+          <span class="label">Тип возврата</span>
+          <select>
+            <option>Любой тип</option>
+            <option>СО</option>
+            <option>ЕП</option>
+          </select>
+        </label>
+      </div>
+      <label class="input mt-5 mb-5 outline-none text-secondary-content">
+        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </g>
+        </svg>
+        <input type="search" class="grow" placeholder="Поиск" />
+      </label>
+    </div>
+
+    <script src="{{ url_for('static', path='js/reports_sorting.js') }}"></script>
+
+    <div class="grid gap-10">
+      <div class="overflow-x-auto h-100 bg-base-200 rounded-box shadow">
+        <p id="totals" class="text-base-content"></p>
+        <table class="table table-xs table-pin-rows">
+          <thead>
+            <tr class="text-secondary-content bg-base-200">
+              <th>№</th>
+              <th>Референс</th>
+              <th>БИН отправ.</th>
+              <th>№ плат.поруч.</th>
+              <th>Дата плат.</th>
+              <th>Сумма платежа</th>
+              <th>Сумма возврата</th>
+              <th>Статус</th>
+              <th>КНП</th>
+              <th>Тип возврата</th>
+              <th>Дата ООП</th>
+              <th>Дата ГФСС</th>
+              <th>Дата 1С</th>
+            </tr>
+          </thead>
+          <tbody class="text-base-content">
+            {% for refund in refunds|default([]) %}
+              {% for item in refund.items|default([]) %}
+                <tr class="cursor-pointer" onclick="loadPerson('{{ item.iin }}', this)">
+                  <td>{{ item.ret_num }}</td>
+                  <td>{{ refund.refer_in }}</td>
+                  <td>{{ item.iin }}</td>
+                  <td>{{ refund.c1_doc_number }}</td>
+                  <td>{{ refund.c1_doc_date.strftime('%d.%m.%Y') if refund.c1_doc_date else '' }}</td>
+                  <td>{{ refund.sum_all }}</td>
+                  <td>{{ item.line_refund }}</td>
+                  <td>{{ refund.status }}</td>
+                  <td>{{ refund.knp }}</td>
+                  <td>{{ refund.type_payer }}</td>
+                  <td>{{ refund.recv_date.strftime('%d.%m.%Y') if refund.recv_date else '' }}</td>
+                  <td>{{ item.doc_date.strftime('%d.%m.%Y') if item.doc_date else '' }}</td>
+                  <td>{{ refund.swift_date.strftime('%d.%m.%Y') if refund.swift_date else '' }}</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="person-details" class="hidden overflow-x-auto h-60 p-5 bg-base-200 rounded-box shadow">
+<!--        JS logic-->
+      </div>
+    </div>
+  </div>
+
+  <input type="radio" name="my_tabs_2" class="tab" aria-label="Ошибочные заявки"/>
+  <div class="tab-content border-base-300 bg-base-100 p-10">
+      <div class="overflow-x-auto h-100 bg-base-200 rounded-box shadow">
+        <p id="totals2" class="text-base-content"></p>
+        <table class="table table-xs table-pin-rows">
+          <thead>
+            <tr class="text-secondary-content bg-base-200">
+              <th>№</th>
+              <th>Референс</th>
+              <th>БИН отправ.</th>
+              <th>№ плат.поруч.</th>
+              <th>Дата плат.</th>
+              <th>Сумма платежа</th>
+              <th>Сумма возврата</th>
+              <th>Статус</th>
+              <th>КНП</th>
+              <th>Тип возврата</th>
+              <th>Дата ООП</th>
+              <th>Дата ГФСС</th>
+              <th>Дата 1С</th>
+            </tr>
+          </thead>
+          <tbody class="text-base-content">
+            {% for refund in refunds|default([]) %}
+              {% if refund.status == 100 %}
+                {% for item in refund.items|default([]) %}
+                  <tr class="cursor-pointer" onclick="loadPerson('{{ item.iin }}', this)">
+                    <td>{{ item.ret_num }}</td>
+                    <td>{{ refund.refer_in }}</td>
+                    <td>{{ item.iin }}</td>
+                    <td>{{ refund.c1_doc_number }}</td>
+                    <td>{{ refund.c1_doc_date.strftime('%d.%m.%Y') if refund.c1_doc_date else '' }}</td>
+                    <td>{{ refund.sum_all }}</td>
+                    <td>{{ item.line_refund }}</td>
+                    <td>{{ refund.status }}</td>
+                    <td>{{ refund.knp }}</td>
+                    <td>{{ refund.type_payer }}</td>
+                    <td>{{ refund.recv_date.strftime('%d.%m.%Y') if refund.recv_date else '' }}</td>
+                    <td>{{ item.doc_date.strftime('%d.%m.%Y') if item.doc_date else '' }}</td>
+                    <td>{{ refund.swift_date.strftime('%d.%m.%Y') if refund.swift_date else '' }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+
+<script>
+let selectedRow = null;
+
+async function loadPerson(iin, row) {
+    if (selectedRow) {
+        selectedRow.classList.remove("bg-accent-content");
+    }
+
+    row.classList.add("bg-accent-content");
+    selectedRow = row;
+
+    const response = await fetch(`/reports/person/${iin}`);
+    const data = await response.json();
+
+    const container = document.getElementById("person-details");
+
+    if (!data) {
+        container.innerHTML = "<p class='text-error'>Данные не найдены</p>";
+    } else {
+        container.innerHTML = `
+            <h3 class="text-lg text-accent font-bold mb-2">Данные физ.лица</h3>
+            <div class="flex gap-1 text-base-content"><b>ИИН:</b> <p class="select-all">${data.iin}</p></div>
+            <div class="flex gap-1 text-base-content"><b>ФИО:</b> <p class="select-all">${data.lastname || ''} ${data.firstname || ''} ${data.middlename || ''}</p></div>
+            <div class="flex gap-1 text-base-content"><b>Дата рождения:</b> <p class="select-all">${data.birthdate || ''}</p></div>
+            <div class="flex gap-1 text-base-content"><b>Адрес:</b> <p class="select-all">${data.address || ''}</p></div>
+        `;
+    }
+
+    container.classList.remove("hidden");
+}
+</script>
+
+
+
+{% endblock %}

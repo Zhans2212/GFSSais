@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+    const exit = document.getElementById("exit-button");
+    const profile = document.getElementById("profile-button");
+
+    exit.disabled = true;
+    profile.disabled = true;
+</script>
+<div class="grid place-items-center">
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+      <legend class="fieldset-legend">Вход в систему</legend>
+
+      <label class="label">Email</label>
+      <input type="email" class="input outline-none caret-secondary" required placeholder="Email" />
+
+      <label class="label">Пароль</label>
+      <input type="password" class="input validator outline-none caret-secondary" required placeholder="Пароль" minlength="8"
+        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+        title="Must be more than 8 characters, including number, lowercase letter, uppercase letter" />
+      <p class="validator-hint">
+          Must be more than 8 characters, including
+          <br/>At least one number
+          <br/>At least one lowercase letter
+          <br/>At least one uppercase letter
+      </p>
+      <button class="btn btn-neutral mt-4">Войти</button>
+    </fieldset>
+</div>
+{% endblock %}
