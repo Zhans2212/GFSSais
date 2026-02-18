@@ -64,5 +64,26 @@
 </div>
 
 <script src="{{ url_for('static', path='js/toggle_mode.js') }}"></script>
+<script>
+    document.getElementById("profile-button").addEventListener("click", async () => {
+        window.location.href = "/profile";
+    })
+</script>
+<script>
+    document.getElementById("exit-button").addEventListener("click", async (e) => {
+        e.preventDefault()
+
+        const response = await fetch("/login/logout", {
+            method: "POST"
+        });
+
+        if (response.ok) {
+            window.location.href = "/login";
+        } else {
+        alert("Ошибка!");
+        }
+    })
+</script>
+
 </body>
 </html>

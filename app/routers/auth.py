@@ -21,7 +21,6 @@ class LoginRequest(BaseModel):
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_optional(request)
-
     if user:
         return RedirectResponse("/reports", status_code=303)
 
@@ -32,12 +31,6 @@ async def home(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/auth")
 async def login(payload: LoginRequest, request: Request):
-    user = get_current_user_optional(request)
-
-    if user:
-        return RedirectResponse("/reports", status_code=303)
-
-
     ip = request.client.host
     print(f'/LOGIN. client: {ip}')
 
@@ -84,6 +77,6 @@ async def logout(request: Request):
     ip = request.client.host
     sso_logout(ip)
 
-    response = RedirectResponse(url="/login", status_code=303)
+    response = JSONResponse(content={"message": "logged out"})
     response.delete_cookie("access_token")
     return response
