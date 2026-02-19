@@ -19,7 +19,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
     refunds = db.query(ApprovedRefund).all()
 
     return templates.TemplateResponse(
-        "reports/reports_so.html",
+        "pages/reports.html",
         {"request": request, "refunds": refunds, "user": user}
     )
 

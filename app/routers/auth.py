@@ -25,7 +25,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse("/reports", status_code=303)
 
     return templates.TemplateResponse(
-        "reports/login.html",
+        "pages/login.html",
         {"request": request}
     )
 
