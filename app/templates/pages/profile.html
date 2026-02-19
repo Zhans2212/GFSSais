@@ -1,5 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Profile</h1>
+
+<div class="grid place-items-center">
+    <div class="container bg-base-200 border-base-300 rounded-box w-xs border p-4">
+
+      <label class="label">Имя пользователя</label>
+      <p>{{ user.fio }}</p>
+
+      <label class="label">Департамент</label>
+      <p>{{ user.dep_name }}</p>
+
+      <label class="label">Должность</label>
+      <p>{{ user.post }}</p>
+
+    </div>
+</div>
+
 {% endblock %}

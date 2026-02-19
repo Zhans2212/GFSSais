@@ -50,7 +50,10 @@ async def login(payload: LoginRequest, request: Request):
         data={
             "sub": user.username,
             "roles": user.roles,
-            "top_control": user.top_control
+            "top_control": user.top_control,
+            "fio": user.fio,
+            "dep_name": user.dep_name,
+            "post": user.post
         }
     )
 
