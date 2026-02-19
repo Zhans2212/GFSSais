@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.config import templates
 from app.core.security import get_current_user_optional
+from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -13,7 +14,7 @@ async def home(request: Request):
         return RedirectResponse("/login", status_code=303)
 
     print(user)
-    return templates.TemplateResponse(
+    return no_cache(templates.TemplateResponse(
         "pages/profile.html",
         {"request": request, "user": user}
-    )
+    ))

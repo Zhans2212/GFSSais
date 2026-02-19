@@ -6,6 +6,7 @@ from app.core.security import get_current_user_optional
 from app.db.engine import get_db
 from app.db.models import ApprovedRefund, Person
 from app.config import templates
+from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -18,10 +19,10 @@ async def home(request: Request, db: Session = Depends(get_db)):
 
     refunds = db.query(ApprovedRefund).all()
 
-    return templates.TemplateResponse(
+    return no_cache(templates.TemplateResponse(
         "pages/reports.html",
         {"request": request, "refunds": refunds, "user": user}
-    )
+    ))
 
 @router.get("/person/{iin}")
 async def get_person(iin: str, db: Session = Depends(get_db)):

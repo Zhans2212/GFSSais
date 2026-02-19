@@ -8,7 +8,7 @@ from app.config import templates
 from app.core.sso_client import sso_login, sso_logout
 from app.core.security import create_access_token, get_current_user_optional
 from app.core.security import build_user_from_sso
-from app.db.engine import get_db
+from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -19,15 +19,15 @@ class LoginRequest(BaseModel):
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request, db: Session = Depends(get_db)):
+async def home(request: Request):
     user = get_current_user_optional(request)
     if user:
         return RedirectResponse("/reports", status_code=303)
 
-    return templates.TemplateResponse(
+    return no_cache(templates.TemplateResponse(
         "pages/login.html",
         {"request": request}
-    )
+    ))
 
 @router.post("/auth")
 async def login(payload: LoginRequest, request: Request):
