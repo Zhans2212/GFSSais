@@ -6,9 +6,9 @@
   x-data="reportsTabs()"
 >
   <!-- Кнопки открытия вкладок -->
-  <div class="flex justify-between items-center">
+  <div class="flex justify-start gap-4 items-center">
     <button
-      class="btn btn-primary"
+      class="btn btn-neutral"
       type="button"
       @click="openTab('returns')"
       :disabled="tabs.length >= maxTabs"
@@ -17,7 +17,7 @@
     </button>
 
     <button
-      class="btn btn-primary"
+      class="btn btn-neutral"
       type="button"
       @click="openTab('wrong')"
       :disabled="tabs.length >= maxTabs"
@@ -26,14 +26,14 @@
     </button>
 
     <button
-      class="btn btn-accent bg-warning-500 hover:bg-warning-600"
+      class="btn btn-error"
       type="button"
       @click="closeAll()"
     >
       Закрыть всё
     </button>
 
-    <div class="text-sm opacity-70 ml-auto">
+    <div class="text-sm opacity-70">
       Открыто: <span x-text="tabs.length"></span>/<span x-text="maxTabs"></span>
     </div>
   </div>
