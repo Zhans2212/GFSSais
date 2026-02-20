@@ -2,55 +2,121 @@
 
 {% block content %}
 
-<!-- name of each tab group should be unique -->
-<div class="tabs tabs-border">
-  <input type="radio" name="my_tabs_2" class="tab" aria-label="Возвраты СО" checked="checked"/>
-  <div class="tab-content border-base-300 bg-base-100 p-10">
-    <div class="flex justify-between items-end">
-      <div class="grid grid-rows-2 gap-4 ml-2 mb-5">
-        <label class="select outline-none text-secondary-content">
-          <span class="label">Статус</span>
-          <select id="select-status">
-            <option>Все записи</option>
-            <option>1 - Документ принят</option>
-            <option>2 - Документ одобрен</option>
-            <option>3 - Документ передан в 1С</option>
-            <option>5 - Отказ в возврате</option>
-            <option>100 - Отклонен оператором</option>
-          </select>
-        </label>
+<div
+  x-data="reportsTabs()"
+>
+  <!-- Кнопки открытия вкладок -->
+  <div class="flex justify-between items-center">
+    <button
+      class="btn btn-primary"
+      type="button"
+      @click="openTab('returns')"
+      :disabled="tabs.length >= maxTabs"
+    >
+      Возвраты СО
+    </button>
 
-        <label class="select outline-none text-secondary-content">
-          <span class="label">Тип возврата</span>
-          <select>
-            <option>Любой тип</option>
-            <option>СО</option>
-            <option>ЕП</option>
-          </select>
-        </label>
-      </div>
-      <label class="input mt-5 mb-5 outline-none text-secondary-content">
-        <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <g
-            stroke-linejoin="round"
-            stroke-linecap="round"
-            stroke-width="2.5"
-            fill="none"
-            stroke="currentColor"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </g>
-        </svg>
-        <input type="search" class="grow" placeholder="Поиск" />
-      </label>
+    <button
+      class="btn btn-primary"
+      type="button"
+      @click="openTab('wrong')"
+      :disabled="tabs.length >= maxTabs"
+    >
+      Ошибочные заявки
+    </button>
+
+    <button
+      class="btn btn-accent bg-warning-500 hover:bg-warning-600"
+      type="button"
+      @click="closeAll()"
+    >
+      Закрыть всё
+    </button>
+
+    <div class="text-sm opacity-70 ml-auto">
+      Открыто: <span x-text="tabs.length"></span>/<span x-text="maxTabs"></span>
     </div>
+  </div>
 
-    <script src="{{ url_for('static', path='js/reports_sorting.js') }}"></script>
+  <!-- Заголовки вкладок -->
+  <div class="tabs tabs-border flex-wrap">
+    <template x-for="tab in tabs" :key="tab.id">
+      <a
+        class="tab"
+        role="tab"
+        href="#"
+        :class="activeId === tab.id ? 'tab-active' : ''"
+        @click.prevent="activeId = tab.id"
+      >
+        <span x-text="tab.title"></span>
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs ml-2"
+          title="Закрыть"
+          @click.stop="closeTab(tab.id)"
+        >
+          ✕
+        </button>
+      </a>
+    </template>
 
-    <div class="grid gap-10">
+    <template x-if="tabs.length === 0">
+      <div class="p-4 opacity-70">
+        Откройте вкладку кнопками выше.
+      </div>
+    </template>
+  </div>
+
+  <!-- Контент активной вкладки -->
+  <template x-for="tab in tabs" :key="tab.id">
+    <section
+      x-show="activeId === tab.id"
+      class="border-base-300 bg-base-100 p-6 rounded-box"
+    >
+      <!-- ФИЛЬТРЫ: ТОЛЬКО для "Возвраты СО" -->
+      <template x-if="tab.kind === 'returns'">
+        <div class="flex flex-wrap justify-between items-end gap-4 mb-5">
+          <div class="grid grid-rows-2 gap-4 ml-2">
+            <label class="select outline-none text-secondary-content">
+              <span class="label">Статус</span>
+              <select x-model="tab.state.status">
+                <option value="all">Все записи</option>
+                <option value="1">1 - Документ принят</option>
+                <option value="2">2 - Документ одобрен</option>
+                <option value="3">3 - Документ передан в 1С</option>
+                <option value="5">5 - Отказ в возврате</option>
+                <option value="100">100 - Отклонен оператором</option>
+              </select>
+            </label>
+
+            <label class="select outline-none text-secondary-content">
+              <span class="label">Тип возврата</span>
+              <select x-model="tab.state.type">
+                <option value="any">Любой тип</option>
+                <option value="СО">СО</option>
+                <option value="ЕП">ЕП</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="input outline-none text-secondary-content">
+            <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </g>
+            </svg>
+            <input
+              type="search"
+              class="grow"
+              placeholder="Поиск (референс/БИН)"
+              x-model.trim="tab.state.query"
+            />
+          </label>
+        </div>
+      </template>
+
       <div class="overflow-x-auto h-100 bg-base-200 rounded-box shadow">
-        <p id="totals" class="text-base-content"></p>
         <table class="table table-xs table-pin-rows">
           <thead>
             <tr class="text-secondary-content bg-base-200">
@@ -69,10 +135,19 @@
               <th>Дата 1С</th>
             </tr>
           </thead>
+
           <tbody class="text-base-content">
             {% for refund in refunds|default([]) %}
               {% for item in refund.items|default([]) %}
-                <tr class="cursor-pointer" onclick="loadPerson('{{ item.iin }}', this)">
+                <tr
+                  class="cursor-pointer"
+                  onclick="loadPerson('{{ item.iin }}', this)"
+                  x-show="
+                    (tab.kind === 'returns' && rowVisible(tab, '{{ refund.status }}', '{{ refund.type_payer }}', '{{ refund.refer_in }}', '{{ item.iin }}'))
+                    ||
+                    (tab.kind === 'wrong' && '{{ refund.status }}' === '2')
+                  "
+                >
                   <td>{{ item.ret_num }}</td>
                   <td>{{ refund.refer_in }}</td>
                   <td>{{ item.iin }}</td>
@@ -92,63 +167,75 @@
           </tbody>
         </table>
       </div>
-
-      <div id="person-details" class="hidden overflow-x-auto h-60 p-5 bg-base-200 rounded-box shadow">
-<!--        select_person.js      -->
-      </div>
-    </div>
-  </div>
-
-  <input type="radio" name="my_tabs_2" class="tab" aria-label="Ошибочные заявки"/>
-  <div class="tab-content border-base-300 bg-base-100 p-10">
-      <div class="overflow-x-auto h-100 bg-base-200 rounded-box shadow">
-        <p id="totals2" class="text-base-content"></p>
-        <table class="table table-xs table-pin-rows">
-          <thead>
-            <tr class="text-secondary-content bg-base-200">
-              <th>№</th>
-              <th>Референс</th>
-              <th>БИН отправ.</th>
-              <th>№ плат.поруч.</th>
-              <th>Дата плат.</th>
-              <th>Сумма платежа</th>
-              <th>Сумма возврата</th>
-              <th>Статус</th>
-              <th>КНП</th>
-              <th>Тип возврата</th>
-              <th>Дата ООП</th>
-              <th>Дата ГФСС</th>
-              <th>Дата 1С</th>
-            </tr>
-          </thead>
-          <tbody class="text-base-content">
-            {% for refund in refunds|default([]) %}
-              {% if refund.status == 100 %}
-                {% for item in refund.items|default([]) %}
-                  <tr class="cursor-pointer" onclick="loadPerson('{{ item.iin }}', this)">
-                    <td>{{ item.ret_num }}</td>
-                    <td>{{ refund.refer_in }}</td>
-                    <td>{{ item.iin }}</td>
-                    <td>{{ refund.c1_doc_number }}</td>
-                    <td>{{ refund.c1_doc_date.strftime('%d.%m.%Y') if refund.c1_doc_date else '' }}</td>
-                    <td>{{ refund.sum_all }}</td>
-                    <td>{{ item.line_refund }}</td>
-                    <td>{{ refund.status }}</td>
-                    <td>{{ refund.knp }}</td>
-                    <td>{{ refund.type_payer }}</td>
-                    <td>{{ refund.recv_date.strftime('%d.%m.%Y') if refund.recv_date else '' }}</td>
-                    <td>{{ item.doc_date.strftime('%d.%m.%Y') if item.doc_date else '' }}</td>
-                    <td>{{ refund.swift_date.strftime('%d.%m.%Y') if refund.swift_date else '' }}</td>
-                  </tr>
-                {% endfor %}
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-  </div>
+    </section>
+  </template>
 </div>
 
-<script src="{{ url_for('static', path='js/select_person.js') }}"> </script>
+<script src="{{ url_for('static', path='js/select_person.js') }}"></script>
+
+<script>
+  function reportsTabs() {
+    return {
+      maxTabs: 6,
+      tabs: [],
+      activeId: null,
+      counters: { returns: 0, wrong: 0 },
+
+      openTab(kind) {
+        if (this.tabs.length >= this.maxTabs) return;
+
+        this.counters[kind] += 1;
+
+        const titleBase = kind === 'returns' ? 'Возвраты СО' : 'Ошибочные заявки';
+        const title = this.counters[kind] > 1 ? `${titleBase} #${this.counters[kind]}` : titleBase;
+
+        const id = `${kind}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+        const newTab = {
+          id,
+          kind,
+          title,
+          state: {
+            status: 'all',
+            type: 'any',
+            query: '',
+          }
+        };
+
+        this.tabs.push(newTab);
+        this.activeId = id;
+      },
+
+      closeTab(id) {
+        const idx = this.tabs.findIndex(t => t.id === id);
+        if (idx === -1) return;
+
+        const wasActive = this.activeId === id;
+        this.tabs.splice(idx, 1);
+
+        if (!wasActive) return;
+
+        const next = this.tabs[idx] || this.tabs[idx - 1] || null;
+        this.activeId = next ? next.id : null;
+      },
+
+      closeAll() {
+        this.tabs.splice(0, this.tabs.length);
+      },
+
+      // Используется ТОЛЬКО для "Возвраты СО"
+      rowVisible(tab, status, typePayer, referIn, iin) {
+        if (tab.state.status !== 'all' && String(status) !== String(tab.state.status)) return false;
+        if (tab.state.type !== 'any' && String(typePayer) !== String(tab.state.type)) return false;
+
+        const q = (tab.state.query || '').toLowerCase();
+        if (!q) return true;
+
+        const hay = `${referIn ?? ''} ${iin ?? ''}`.toLowerCase();
+        return hay.includes(q);
+      }
+    };
+  }
+</script>
 
 {% endblock %}
