@@ -141,7 +141,8 @@
               {% for item in refund.items|default([]) %}
                 <tr
                   class="cursor-pointer"
-                  onclick="loadPerson('{{ item.iin }}', this)"
+                  @click="loadPerson(tab, '{{ item.iin }}')"
+                  :class="tab.state.selectedIin === '{{ item.iin }}' ? 'bg-accent-content' : ''"
                   x-show="
                     (tab.kind === 'returns' && rowVisible(tab, '{{ refund.status }}', '{{ refund.type_payer }}', '{{ refund.refer_in }}', '{{ item.iin }}'))
                     ||
@@ -167,16 +168,78 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Детали выбранного человека: у каждой вкладки свои -->
+      <div
+        x-show="tab.state.personPanelOpen"
+        class="overflow-x-auto h-60 p-5 mt-6 bg-base-200 rounded-box shadow"
+      >
+        <template x-if="tab.state.loadingPerson">
+          <div class="text-base-content">Загрузка...</div>
+        </template>
+
+        <template x-if="tab.state.personError">
+          <p class="text-error" x-text="tab.state.personError"></p>
+        </template>
+
+        <template x-if="tab.state.person">
+          <div>
+            <h3 class="text-lg text-accent font-bold mb-2">Данные физ.лица</h3>
+
+            <div class="flex gap-1 text-base-content">
+              <b>ИИН:</b> <p class="select-all" x-text="tab.state.person.iin"></p>
+            </div>
+
+            <div class="flex gap-1 text-base-content">
+              <b>ФИО:</b>
+              <p
+                class="select-all"
+                x-text="`${tab.state.person.lastname || ''} ${tab.state.person.firstname || ''} ${tab.state.person.middlename || ''}`.trim()"
+              ></p>
+            </div>
+
+            <div class="flex gap-1 text-base-content">
+              <b>Дата рождения:</b> <p class="select-all" x-text="tab.state.person.birthdate || ''"></p>
+            </div>
+
+            <div class="flex gap-1 text-base-content">
+              <b>Адрес:</b> <p class="select-all" x-text="tab.state.person.address || ''"></p>
+            </div>
+          </div>
+        </template>
+      </div>
     </section>
   </template>
 </div>
-
-<script src="{{ url_for('static', path='js/select_person.js') }}"></script>
 
 <script>
   function reportsTabs() {
     return {
       maxTabs: 6,
+
+      async loadPerson(tab, iin) {
+        tab.state.selectedIin = iin;
+        tab.state.personPanelOpen = true;
+        tab.state.loadingPerson = true;
+        tab.state.personError = null;
+        tab.state.person = null;
+
+        try {
+          const resp = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
+          if (!resp.ok) throw new Error('HTTP error');
+
+          const data = await resp.json();
+          if (!data) {
+            tab.state.personError = 'Данные не найдены';
+          } else {
+            tab.state.person = data;
+          }
+        } catch (e) {
+          tab.state.personError = 'Ошибка загрузки данных';
+        } finally {
+          tab.state.loadingPerson = false;
+        }
+      },
       tabs: [],
       activeId: null,
       counters: { returns: 0, wrong: 0 },
@@ -199,6 +262,13 @@
             status: 'all',
             type: 'any',
             query: '',
+
+            // состояние выбранного человека — ВНУТРИ вкладки
+            selectedIin: null,
+            personPanelOpen: false,
+            loadingPerson: false,
+            personError: null,
+            person: null
           }
         };
 
@@ -223,7 +293,6 @@
         this.tabs.splice(0, this.tabs.length);
       },
 
-      // Используется ТОЛЬКО для "Возвраты СО"
       rowVisible(tab, status, typePayer, referIn, iin) {
         if (tab.state.status !== 'all' && String(status) !== String(tab.state.status)) return false;
         if (tab.state.type !== 'any' && String(typePayer) !== String(tab.state.type)) return false;
