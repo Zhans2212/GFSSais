@@ -3,8 +3,7 @@
 {% block content %}
 
 <div
-  x-data="reportsTabs()"
->
+  x-data="reportsTabs()" x-init="init()">
   <!-- Кнопки открытия вкладок -->
   <div class="flex justify-start gap-4 items-center">
     <button
@@ -175,7 +174,7 @@
         class="overflow-x-auto h-60 p-5 mt-6 bg-base-200 rounded-box shadow"
       >
         <template x-if="tab.state.loadingPerson">
-          <div class="text-base-content">Загрузка...</div>
+          <span class="loading loading-spinner loading-lg"></span>
         </template>
 
         <template x-if="tab.state.personError">
@@ -216,6 +215,9 @@
   function reportsTabs() {
     return {
       maxTabs: 6,
+      tabs: [],
+      activeId: null,
+      counters: { returns: 0, wrong: 0 },
 
       async loadPerson(tab, iin) {
         tab.state.selectedIin = iin;
@@ -240,9 +242,97 @@
           tab.state.loadingPerson = false;
         }
       },
-      tabs: [],
-      activeId: null,
-      counters: { returns: 0, wrong: 0 },
+
+      storageKey: 'reportsTabsState:v1',
+      _saveTimer: null,
+
+      init() {
+        this.restore();
+
+        // автосохранение при изменениях
+        this.$watch('tabs', () => this.scheduleSave(), { deep: true });
+        this.$watch('activeId', () => this.scheduleSave());
+        this.$watch('counters', () => this.scheduleSave(), { deep: true });
+      },
+      snapshotForSave() {
+        return {
+          activeId: this.activeId,
+          counters: this.counters,
+          tabs: this.tabs.map(t => ({
+            id: t.id,
+            kind: t.kind,
+            title: t.title,
+            state: {
+              status: t.state.status,
+              type: t.state.type,
+              query: t.state.query,
+
+              selectedIin: t.state.selectedIin,
+              personPanelOpen: t.state.personPanelOpen
+            }
+          }))
+        };
+      },
+
+      scheduleSave() {
+        clearTimeout(this._saveTimer);
+        this._saveTimer = setTimeout(() => this.save(), 300);
+      },
+
+      save() {
+        try {
+          localStorage.setItem(this.storageKey, JSON.stringify(this.snapshotForSave()));
+        } catch (e) {
+          // если storage переполнен или запрещён — просто молчим
+        }
+      },
+
+      restore() {
+        try {
+          const raw = localStorage.getItem(this.storageKey);
+          if (!raw) return;
+
+          const data = JSON.parse(raw);
+          if (!data || !Array.isArray(data.tabs)) return;
+
+          this.counters = data.counters || { returns: 0, wrong: 0 };
+
+          this.tabs = data.tabs.slice(0, this.maxTabs).map(t => ({
+            id: t.id || `${t.kind}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            kind: t.kind,
+            title: t.title || (t.kind === 'returns' ? 'Возвраты СО' : 'Ошибочные заявки'),
+            state: {
+              status: t.state?.status ?? 'all',
+              type: t.state?.type ?? 'any',
+              query: t.state?.query ?? '',
+
+              selectedIin: t.state?.selectedIin ?? null,
+              personPanelOpen: t.state?.personPanelOpen ?? false,
+
+              // эти поля не сохраняем — они живые
+              loadingPerson: false,
+              personError: null,
+              person: null
+            }
+          }));
+
+          this.activeId =
+            data.activeId && this.tabs.some(x => x.id === data.activeId)
+              ? data.activeId
+              : (this.tabs[0]?.id ?? null);
+
+          // если надо — подтянуть данные выбранных людей после восстановления
+          this.tabs.forEach(t => {
+            if (t.state.selectedIin) this.loadPerson(t, t.state.selectedIin);
+          });
+        } catch (e) {
+          // битый JSON — игнорируем
+        }
+      },
+
+      clearSavedState() {
+        localStorage.removeItem(this.storageKey);
+      },
 
       openTab(kind) {
         if (this.tabs.length >= this.maxTabs) return;
@@ -285,12 +375,15 @@
 
         if (!wasActive) return;
 
+        this.counters[this.tabs[idx - 1]?.kind ?? 'returns'] -= 1;
+
         const next = this.tabs[idx] || this.tabs[idx - 1] || null;
         this.activeId = next ? next.id : null;
       },
 
       closeAll() {
         this.tabs.splice(0, this.tabs.length);
+        this.counters = { returns: 0, wrong: 0 };
       },
 
       rowVisible(tab, status, typePayer, referIn, iin) {
