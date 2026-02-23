@@ -99,7 +99,9 @@ return {
           // эти поля не сохраняем — они живые
           loadingPerson: false,
           personError: null,
-          person: null
+          person: null,
+
+          totals: { totalSum: 0, totalRefund: 0, count: 0 }
         }
       }));
 
@@ -119,6 +121,34 @@ return {
 
   clearSavedState() {
     localStorage.removeItem(this.storageKey);
+  },
+
+  recalcTotals(tab, rootEl) {
+    if (!tab || !rootEl) return;
+
+    const rows = rootEl.querySelectorAll("tbody tr");
+
+    let totalSum = 0;
+    let totalRefund = 0;
+    let count = 0;
+
+    rows.forEach((row) => {
+      const style = getComputedStyle(row).display;
+      if (style === "none") return;
+
+      const sumText = (row.cells[5]?.innerText ?? "").replace(/,/g, "");
+      const refundText = (row.cells[6]?.innerText ?? "").replace(/,/g, "");
+
+      totalSum += parseFloat(sumText) || 0;
+      totalRefund += parseFloat(refundText) || 0;
+      count += 1;
+    });
+
+    tab.state.totals = {
+      totalSum,
+      totalRefund,
+      count
+    };
   },
 
   openTab(kind) {

@@ -1658,6 +1658,9 @@
       }
     }
   }
+  .mx-2 {
+    margin-inline: calc(var(--spacing) * 2);
+  }
   .label {
     @layer daisyui.l1.l2.l3 {
       display: inline-flex;
