@@ -210,6 +210,7 @@ return {
   closeAll() {
     this.tabs.splice(0, this.tabs.length);
     this.counters = { returns: 0, wrong: 0 };
+    this.clearSavedState();
   },
 
   rowVisible(tab, status, typePayer, referIn, iin) {
