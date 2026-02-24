@@ -25,7 +25,7 @@
     </button>
 
     <button
-      class="btn btn-error"
+      class="btn btn-neutral hover:btn-error"
       type="button"
       @click="requestCloseAll()"
       :disabled="tabs.length === 0"
@@ -46,7 +46,7 @@
         Будут закрыты <b x-text="tabs.length"></b> вкладок(и).
       </p>
 
-      <div class="alert alert-warning mt-3">
+      <div class="alert alert-soft mt-3">
         <span>Действие нельзя отменить.</span>
       </div>
 

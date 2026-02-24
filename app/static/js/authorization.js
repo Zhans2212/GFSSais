@@ -1,23 +1,40 @@
-document.getElementById("loginBtn").addEventListener("click", async (e) => {
-    e.preventDefault();
+function loginForm() {
+return {
+  username: "",
+  password: "",
+  loading: false,
+  error: "",
 
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+  async submit() {
+    this.error = "";
+    this.loading = true;
 
-    const response = await fetch("/login/auth", {
+    try {
+      const response = await fetch("/login/auth", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
-            username: username,
-            password: password
+          username: this.username,
+          password: this.password
         })
-    });
+      });
 
-    if (response.ok) {
+      if (response.ok) {
         window.location.href = "/reports";
-    } else {
-        alert("Неверный логин или пароль");
+        return;
+      }
+
+      if (response.status === 401) {
+        this.error = "Неверный логин или пароль";
+      } else {
+        this.error = "Ошибка входа";
+      }
+    } catch (e) {
+      this.error = "Сеть недоступна или сервер не отвечает";
+    } finally {
+      this.loading = false;
     }
-});
+  }
+};
+}

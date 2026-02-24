@@ -11,15 +11,16 @@
     reports.disabled = true;
 </script>
 
-<div class="grid place-items-center">
-    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+<div class="grid place-items-center" x-data="loginForm()">
+    <form class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+    @submit.prevent="submit()">
       <legend class="fieldset-legend">Вход в систему</legend>
 
       <label class="label">Имя пользователя</label>
-      <input id="username" type="text" class="input outline-none caret-secondary" required placeholder="Имя пользователя" />
+      <input x-model.trim="username" id="username" type="text" class="input outline-none caret-secondary" required placeholder="Имя пользователя" />
 
       <label class="label">Пароль</label>
-      <input id="password" type="password" class="input validator outline-none caret-secondary" required placeholder="Пароль" minlength="8"/>
+      <input x-model="password" id="password" type="password" class="input validator outline-none caret-secondary" required placeholder="Пароль" minlength="8"/>
 <!--        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"-->
 <!--        title="Must be more than 8 characters, including number, lowercase letter, uppercase letter" />-->
 <!--      <p class="validator-hint">-->
@@ -28,8 +29,12 @@
 <!--          <br/>At least one lowercase letter-->
 <!--          <br/>At least one uppercase letter-->
 <!--      </p>-->
-      <button id="loginBtn" class="btn btn-neutral mt-4">Войти</button>
-    </fieldset>
+      <button id="loginBtn" class="btn btn-neutral mt-4" type="submit" :disabled="loading">
+        <span x-show="!loading">Войти</span>
+        <span x-show="loading">Входим...</span>
+      </button>
+      <p class="text-error mt-2" x-show="error" x-text="error"></p>
+    </form>
 </div>
 
 <script src="{{ url_for('static', path='js/authorization.js') }}"></script>
