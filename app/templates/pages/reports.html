@@ -130,6 +130,15 @@
             </label>
           </div>
 
+          <button
+            class="btn btn-success"
+            type="button"
+            @click="requestAcceptAll()"
+            :disabled="tabs.length === 0"
+          >
+            Согласовать всё
+          </button>
+
           <label class="input outline-none text-secondary-content">
             <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
               <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
@@ -172,6 +181,8 @@
               {% for item in refund.items|default([]) %}
                 <tr
                   class="cursor-pointer"
+                  data-sior-id="{{ refund.sior_id }}"
+                  data-status="{{ refund.status }}"
                   @click="loadPerson(tab, '{{ item.iin }}')"
                   :class="tab.state.selectedIin === '{{ item.iin }}' ? 'bg-accent-content' : ''"
                   x-show="

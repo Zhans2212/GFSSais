@@ -222,6 +222,48 @@ return {
 
     const hay = `${referIn ?? ''} ${iin ?? ''}`.toLowerCase();
     return hay.includes(q);
+  },
+
+  async requestAcceptAll() {
+    try {
+      const activeSection = Array.from(document.querySelectorAll("section")).find(
+        (s) => getComputedStyle(s).display !== "none"
+      ) || document;
+
+      const rows = activeSection.querySelectorAll("tbody tr");
+
+      const siorIds = new Set();
+      rows.forEach((row) => {
+        if (getComputedStyle(row).display === "none") return;
+
+        const v = row.dataset.siorId;
+        if (v) siorIds.add(Number(v));
+      });
+
+      const payload = { sior_ids: Array.from(siorIds) };
+
+      if (payload.sior_ids.length === 0) {
+        alert("Нет записей для согласования");
+        return;
+      }
+
+      const resp = await fetch("/reports/accept_all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        alert("Ошибка согласования");
+        return;
+      }
+
+      window.location.reload();
+    } catch (e) {
+      alert("Ошибка согласования");
+    }
   }
+
 };
 }

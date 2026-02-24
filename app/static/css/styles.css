@@ -1952,6 +1952,9 @@
   .inline {
     display: inline;
   }
+  .inline-block {
+    display: inline-block;
+  }
   .table {
     display: table;
   }
@@ -2151,8 +2154,14 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
+  .border-accent {
+    border-color: var(--color-accent);
+  }
   .border-base-300 {
     border-color: var(--color-base-300);
+  }
+  .border-success {
+    border-color: var(--color-success);
   }
   .bg-accent-content {
     background-color: var(--color-accent-content);
@@ -2389,6 +2398,12 @@
       --btn-fg: var(--color-neutral-content);
     }
   }
+  .btn-success {
+    @layer daisyui.l1.l2.l3 {
+      --btn-color: var(--color-success);
+      --btn-fg: var(--color-success-content);
+    }
+  }
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
@@ -2403,6 +2418,16 @@
         @layer daisyui.l1.l2.l3 {
           --btn-color: var(--color-error);
           --btn-fg: var(--color-error-content);
+        }
+      }
+    }
+  }
+  .hover\:btn-success {
+    &:hover {
+      @media (hover: hover) {
+        @layer daisyui.l1.l2.l3 {
+          --btn-color: var(--color-success);
+          --btn-fg: var(--color-success-content);
         }
       }
     }
