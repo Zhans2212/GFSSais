@@ -1,6 +1,5 @@
-function reportsTabs(payload = {}) {
+function reportsTabs() {
 return {
-  top_control: payload.top_control,
   maxTabs: 6,
   tabs: [],
   activeId: null,
