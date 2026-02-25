@@ -133,6 +133,7 @@
           <button
             class="btn btn-success"
             type="button"
+            x-show="top_control === 0"
             @click="requestAcceptAll()"
           >
             Одобрить всё
@@ -205,7 +206,7 @@
                   <td>{{ item.doc_date.strftime('%d.%m.%Y') if item.doc_date else '' }}</td>
                   <td>{{ refund.swift_date.strftime('%d.%m.%Y') if refund.swift_date else '' }}</td>
                   <td>
-                    <a href="/" class="btn btn-ghost btn-circle disabled:opacity-50" id="cancel-button">
+                    <a href="/" class="w-5 h-5 btn btn-ghost btn-circle disabled:opacity-50" id="cancel-button">
                       <svg class="w-5 h-5 fill-primary-content stroke-primary-content hover:fill-error hover:stroke-error"
                            id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
                            width="122.88px" height="122.88px" viewBox="0 0 122.88 122.88"

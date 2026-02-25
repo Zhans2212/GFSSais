@@ -18,16 +18,6 @@ router = APIRouter()
 class AcceptAllRequest(BaseModel):
     sior_ids: List[int]
 
-def target_status_for_user(user: dict) -> int:
-    roles = set(user.get("roles") or [])
-    if "Admin" in roles:
-        return 1   # 0 -> 1
-    if "Operator" in roles:
-        return 2   # 1 -> 2
-    if "Guest" in roles:
-        return 3   # 2 -> 3
-    raise HTTPException(status_code=403, detail="Forbidden")
-
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_optional(request)
@@ -67,7 +57,7 @@ async def accept_all(payload: AcceptAllRequest, request: Request, db: Session = 
     if not sior_ids:
         return {"ok": True, "requested": 0, "called": 0}
 
-    status_to = target_status_for_user(user)
+    status_to = user.get("top_control") + 1
 
     plsql = text("begin DASORP_TEST.appl.set_status(:sior_id, :status); end;")
 

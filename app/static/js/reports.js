@@ -1,5 +1,6 @@
-function reportsTabs() {
+function reportsTabs(payload = {}) {
 return {
+  top_control: payload.top_control,
   maxTabs: 6,
   tabs: [],
   activeId: null,
@@ -34,6 +35,8 @@ return {
   _saveTimer: null,
 
   init() {
+    console.log('Инициализация:', this.top_control, this.username);
+
     this.restore();
 
     // автосохранение при изменениях

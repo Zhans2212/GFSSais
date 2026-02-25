@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.utils.roles import admin_post, operator_post, guest_post
+from app.utils.roles import first_level, second_level, third_level
 from datetime import datetime, timedelta
 from jose import jwt
 from fastapi import Depends, HTTPException, Request
@@ -59,14 +59,18 @@ def build_user_from_sso(src_user: dict) -> User:
     roles = []
     top_control = 0
 
-    if post in admin_post:
-        roles.append("Admin")
-        top_control = 2
-    elif post in operator_post:
-        roles.append("Operator")
+    if post in first_level:
+        roles.append("first_level")
+        top_control = 0
+    elif post in second_level:
+        roles.append("second_level")
         top_control = 1
+    elif post in third_level:
+        roles.append("third_level")
+        top_control = 3
     else:
-        roles.append("Guest")
+        roles.append("guest")
+        top_control = 4
         # raise HTTPException(status_code=403, detail="No role defined")
 
     return User(
