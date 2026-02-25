@@ -3,7 +3,7 @@
 {% block content %}
 
 <div
-  x-data="reportsTabs()" x-init="init()">
+  x-data="reportsTabs()" x-init="init()" data-top-control="{{ user.top_control|default(4) }}">
   <!-- Кнопки открытия вкладок -->
   <div class="flex justify-start gap-4 items-center space-y-4">
     <button
@@ -133,6 +133,7 @@
           <button
             class="btn btn-success"
             type="button"
+            x-show="canShowAcceptAll(tab)"
             @click="requestAcceptAll()"
           >
             Одобрить всё

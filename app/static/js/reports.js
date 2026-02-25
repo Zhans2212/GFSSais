@@ -1,5 +1,7 @@
 function reportsTabs() {
 return {
+  top_control: 0,
+
   maxTabs: 6,
   tabs: [],
   activeId: null,
@@ -34,7 +36,9 @@ return {
   _saveTimer: null,
 
   init() {
-    console.log('Инициализация:', this.top_control, this.username);
+    const raw = this.$root?.dataset?.topControl ?? "0";
+    const parsed = Number(raw);
+    this.top_control = Number.isFinite(parsed) ? parsed : 0;
 
     this.restore();
 
@@ -43,6 +47,16 @@ return {
     this.$watch('activeId', () => this.scheduleSave());
     this.$watch('counters', () => this.scheduleSave(), { deep: true });
   },
+
+  canShowAcceptAll(tab) {
+    if (!tab || tab.kind !== "returns") return false;
+
+    const selected = String(tab.state.status ?? "");
+    if (selected === "all" || selected === "") return false;
+
+    return selected === String(this.top_control);
+  },
+
   snapshotForSave() {
     return {
       activeId: this.activeId,
