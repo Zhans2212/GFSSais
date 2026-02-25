@@ -2202,8 +2202,14 @@
   .fill-current {
     fill: currentcolor;
   }
+  .fill-error {
+    fill: var(--color-error);
+  }
   .fill-primary-content {
     fill: var(--color-primary-content);
+  }
+  .stroke-error {
+    stroke: var(--color-error);
   }
   .stroke-primary-content {
     stroke: var(--color-primary-content);
@@ -2411,6 +2417,20 @@
   .select-all {
     -webkit-user-select: all;
     user-select: all;
+  }
+  .hover\:fill-error {
+    &:hover {
+      @media (hover: hover) {
+        fill: var(--color-error);
+      }
+    }
+  }
+  .hover\:stroke-error {
+    &:hover {
+      @media (hover: hover) {
+        stroke: var(--color-error);
+      }
+    }
   }
   .hover\:btn-error {
     &:hover {
