@@ -50,7 +50,7 @@ async def get_person(iin: str, db: Session = Depends(get_db)):
 @router.post("/accept_all")
 async def accept_all(payload: AcceptAllRequest, request: Request, db: Session = Depends(get_db)):
     user = get_current_user_optional(request)
-    if user.get("top_control") != "4":
+    if user.get("top_control") == "4":
         raise HTTPException(status_code=403, detail="Forbidden to accept all")
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")

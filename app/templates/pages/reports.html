@@ -101,7 +101,11 @@
     <section
       x-show="activeId === tab.id"
       class="border-base-300 bg-base-100 p-6 rounded-box"
-      x-effect="$nextTick(() => recalcTotals(tab, $el))"
+      x-effect="activeId,
+            tab.state.status,
+            tab.state.type,
+            tab.state.query,
+            $nextTick(() => recalcTotals(tab, $el))"
     >
       <!-- ФИЛЬТРЫ для "Возвраты СО" -->
       <template x-if="tab.kind === 'returns'">
