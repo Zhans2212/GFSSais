@@ -2,14 +2,18 @@ from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+import oracledb
 
 from pydantic import BaseModel
 from typing import List
+
+from starlette.responses import StreamingResponse
 
 from app.core.security import get_current_user_optional
 from app.db.engine import get_db
 from app.db.models import ApprovedRefund, Person
 from app.config import templates
+from app.utils.get_excel_418 import rows_to_excel
 from app.utils.no_cache import no_cache
 
 router = APIRouter()
@@ -74,3 +78,40 @@ async def accept_all(payload: AcceptAllRequest, request: Request, db: Session = 
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="DB error")
+
+
+@router.get("/get_order_excel")
+async def get_order_excel(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        connection = db.connection().connection
+        cursor = connection.cursor()
+        date_val = '18.02.2026'
+
+        out_cursor = cursor.callfunc(
+            "DASORP.MANAGE.GET_ORDER",
+            oracledb.CURSOR,
+            [date_val]
+        )
+
+        rows = out_cursor.fetchall()
+        out_cursor.close()
+        cursor.close()
+
+        # преобразуем в Excel
+        excel_file = rows_to_excel(
+            rows,
+            headers=["Column1", "Column2", "Column3", "Column4"]  # можно свои заголовки
+        )
+
+        return StreamingResponse(
+            excel_file,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="orders.xlsx"'}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
