@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException
+from datetime import datetime
+
+from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -124,19 +126,31 @@ async def accept_all(payload: AcceptAllRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/get_order_excel")
-async def get_order_excel(request: Request):
+@router.get("/report418")
+async def get_report418(request: Request):
+    user = get_current_user_optional(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
 
+    refund_date = "05.12.2024"
+
+    return no_cache(templates.TemplateResponse(
+        "pages/report418.html",
+        {"request": request, "user": user}
+    ))
+
+
+@router.get("/get_report_excel")
+async def get_report_excel(request: Request, date: str = Query(default=datetime.today().strftime('%d.%m.%Y'))):
     user = get_current_user_optional(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     query = text("SELECT DASORP.MANAGE.GET_ORDER(:date) FROM DUAL")
-    date_val = "18.02.2026"
 
     try:
         with engine.connect() as conn:
-            result = conn.execute(query, {"date": date_val})
+            result = conn.execute(query, {"date": date})
             row = result.fetchone()
 
             rows = []
@@ -153,7 +167,7 @@ async def get_order_excel(request: Request):
         return StreamingResponse(
             excel_file,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": 'attachment; filename="orders.xlsx"'}
+            headers={"Content-Disposition": f'attachment; filename="report_{date}.xlsx"'}
         )
 
     except Exception as e:

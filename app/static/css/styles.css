@@ -491,6 +491,200 @@
       }
     }
   }
+  .pika-single {
+    @layer daisyui.l1.l2.l3 {
+      &:is(div) {
+        user-select: none;
+        font-size: 0.75rem;
+        z-index: 999;
+        display: inline-block;
+        position: relative;
+        color: var(--color-base-content);
+        background-color: var(--color-base-100);
+        border-radius: var(--radius-box);
+        border: var(--border) solid var(--color-base-200);
+        padding: 0.5rem;
+        &:before, &:after {
+          content: "";
+          display: table;
+        }
+        &:after {
+          clear: both;
+        }
+        &.is-hidden {
+          display: none;
+        }
+        &.is-bound {
+          position: absolute;
+        }
+        .pika-lendar {
+          css-float: left;
+        }
+        .pika-title {
+          position: relative;
+          text-align: center;
+          select {
+            cursor: pointer;
+            position: absolute;
+            z-index: 999;
+            margin: 0;
+            left: 0;
+            top: 5px;
+            opacity: 0;
+          }
+        }
+        .pika-label {
+          display: inline-block;
+          position: relative;
+          z-index: 999;
+          overflow: hidden;
+          margin: 0;
+          padding: 5px 3px;
+          background-color: var(--color-base-100);
+        }
+        .pika-prev, .pika-next {
+          display: block;
+          cursor: pointer;
+          position: absolute;
+          top: 0;
+          outline: none;
+          border: 0;
+          width: 2.25rem;
+          height: 2.25rem;
+          color: #0000;
+          font-size: 1.2em;
+          border-radius: var(--radius-field);
+          &:hover {
+            background-color: var(--color-base-200);
+          }
+          &.is-disabled {
+            cursor: default;
+            opacity: 0.2;
+          }
+          &:before {
+            display: inline-block;
+            width: 2.25rem;
+            height: 2.25rem;
+            line-height: 2.25;
+            color: var(--color-base-content);
+          }
+        }
+        .pika-prev {
+          left: 0;
+          &:before {
+            --tw-content: "‹";
+            content: var(--tw-content);
+          }
+        }
+        .pika-next {
+          right: 0;
+          &:before {
+            --tw-content: "›";
+            content: var(--tw-content);
+          }
+        }
+        .pika-select {
+          display: inline-block;
+        }
+        .pika-table {
+          width: 100%;
+          border-collapse: collapse;
+          border-spacing: 0;
+          border: 0;
+          th, td {
+            padding: 0;
+          }
+          th {
+            opacity: 0.6;
+            text-align: center;
+            width: 2.25rem;
+            height: 2.25rem;
+          }
+        }
+        .pika-button {
+          cursor: pointer;
+          display: block;
+          outline: none;
+          border: 0;
+          margin: 0;
+          width: 2.25rem;
+          height: 2.25rem;
+          padding: 5px;
+          text-align: right;
+          text-align: center;
+        }
+        .pika-week {
+          color: var(--color-base-content);
+        }
+        .is-today {
+          .pika-button {
+            background: var(--color-primary);
+            color: var(--color-primary-content);
+          }
+        }
+        .is-selected, .has-event {
+          .pika-button {
+            &, &:hover {
+              color: var(--color-base-100);
+              background-color: var(--color-base-content);
+              border-radius: var(--radius-field);
+            }
+          }
+        }
+        .has-event {
+          .pika-button {
+            background: var(--color-base-primary);
+          }
+        }
+        .is-disabled, .is-inrange {
+          .pika-button {
+            background: var(--color-base-primary);
+          }
+        }
+        .is-startrange {
+          .pika-button {
+            color: var(--color-base-100);
+            background: var(--color-base-content);
+            border-radius: var(--radius-field);
+          }
+        }
+        .is-endrange {
+          .pika-button {
+            color: var(--color-base-100);
+            background: var(--color-base-content);
+            border-radius: var(--radius-field);
+          }
+        }
+        .is-disabled {
+          .pika-button {
+            pointer-events: none;
+            cursor: default;
+            color: var(--color-base-content);
+            opacity: 0.3;
+          }
+        }
+        .is-outside-current-month {
+          .pika-button {
+            color: var(--color-base-content);
+            opacity: 0.3;
+          }
+        }
+        .is-selection-disabled {
+          pointer-events: none;
+          cursor: default;
+        }
+        .pika-button:hover, .pika-row.pick-whole-week:hover .pika-button {
+          color: var(--color-base-content);
+          background-color: var(--color-base-200);
+          border-radius: var(--radius-field);
+        }
+        .pika-table abbr {
+          text-decoration: none;
+          font-weight: normal;
+        }
+      }
+    }
+  }
   .dropdown {
     @layer daisyui.l1.l2.l3 {
       position: relative;
@@ -1490,6 +1684,10 @@
       height: var(--size);
     }
   }
+  .size-4 {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+  }
   .h-5 {
     height: calc(var(--spacing) * 5);
   }
@@ -1510,6 +1708,70 @@
   }
   .min-h-screen {
     min-height: 100vh;
+  }
+  .cally {
+    @layer daisyui.l1.l2.l3 {
+      font-size: 0.7rem;
+      &::part(container) {
+        padding: 0.5rem 1rem;
+        user-select: none;
+      }
+      ::part(th) {
+        font-weight: normal;
+        block-size: auto;
+      }
+      &::part(header) {
+        direction: ltr;
+      }
+      ::part(head) {
+        opacity: 0.5;
+        font-size: 0.7rem;
+      }
+      &::part(button) {
+        border-radius: var(--radius-field);
+        border: none;
+        padding: 0.5rem;
+        background: #0000;
+      }
+      &::part(button):hover {
+        background: var(--color-base-200);
+      }
+      ::part(day) {
+        border-radius: var(--radius-field);
+        font-size: 0.7rem;
+      }
+      ::part(day):hover {
+        &:not(selected, today) {
+          background: var(--color-base-200);
+        }
+      }
+      ::part(button day today) {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+      }
+      ::part(selected) {
+        color: var(--color-base-100);
+        background: var(--color-base-content);
+        border-radius: var(--radius-field);
+      }
+      ::part(range-inner) {
+        border-radius: 0;
+      }
+      ::part(range-start) {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+      ::part(range-end) {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+      }
+      ::part(range-start range-end) {
+        border-radius: var(--radius-field);
+      }
+      calendar-month {
+        width: 100%;
+      }
+    }
   }
   .loading-lg {
     @layer daisyui.l1.l2 {
@@ -1755,6 +2017,10 @@
   }
   .shadow {
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-lg {
+    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-sm {
