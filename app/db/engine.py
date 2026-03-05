@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 import oracledb
 import os
@@ -28,12 +28,22 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+def get_refund_list(reports_date: str):
+    """
+    Вызывает функцию DASORP.MANAGE.GET_REFUND_LIST, которая возвращает REF CURSOR,
+    и преобразует результат в список словарей.
+    """
+    query = text("SELECT DASORP.MANAGE.GET_REFUND_LIST(:date) AS refund_cursor FROM DUAL")
 
-# Dependency для сессии
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    with engine.connect() as conn:
+        result = conn.execute(query, {"date": reports_date})
+        row = result.fetchone()
+        refunds = []
+
+        if row and row[0]:  # обращаемся по индексу, а не по строке
+            cursor = row[0]
+            columns = [col[0].lower() for col in cursor.description]
+            refunds = [dict(zip(columns, r)) for r in cursor.fetchall()]
+            cursor.close()
+
+    return refunds
