@@ -159,10 +159,7 @@ async def get_report_excel(request: Request, date: str = Query(default=datetime.
                 rows = cursor.fetchall()
                 cursor.close()
 
-        excel_file = rows_to_excel(
-            rows,
-            headers=["Column1", "Column2", "Column3", "Column4"]
-        )
+        excel_file = rows_to_excel(rows, date, user.get("fio"))
 
         return StreamingResponse(
             excel_file,

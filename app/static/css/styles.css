@@ -2003,6 +2003,9 @@
   .uppercase {
     text-transform: uppercase;
   }
+  .italic {
+    font-style: italic;
+  }
   .caret-secondary {
     caret-color: var(--color-secondary);
   }
