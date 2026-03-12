@@ -80,6 +80,6 @@ async def logout(request: Request):
     ip = request.client.host
     sso_logout(ip)
 
-    response = JSONResponse(content={"message": "logged out"})
+    response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("access_token")
     return response

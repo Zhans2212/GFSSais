@@ -1,5 +1,3 @@
-admin_post = ["Ведущий разработчик", "DEP2"]
-
-operator_post = ["*"]
-
-guest_post = ["*"]
+first_level = ["*"]
+second_level = ["Ведущий разработчик"]
+third_level = ["*"]

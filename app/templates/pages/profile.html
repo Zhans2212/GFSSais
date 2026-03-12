@@ -3,20 +3,20 @@
 {% block content %}
 
 <div class="grid place-items-center">
-    <div class="container bg-base-200 border-base-300 rounded-box size-50 border p-4">
-
-      <div class="flex justify-between">
-          <label class="label">Имя пользователя</label>
-          <p>{{ user.fio }}</p>
-      </div>
-      <div class="flex justify-between">
-          <label class="label">Департамент</label>
-          <p>{{ user.dep_name }}</p>
-      </div>
-      <div class="flex justify-between">
-          <label class="label">Должность</label>
-          <p>{{ user.post }}</p>
-      </div>
+    <div class="container bg-base-200 border-base-300 rounded-box w-lg border p-4 space-y-5">
+        <h2 class="flex justify-center text-xl font-semibold text-secondary-content mb-4">Профиль пользователя</h2>
+        <div class="grid grid-cols-2 gap-y-3 items-start">
+            <label class="label basis-1/3">Имя пользователя</label>
+            <p class="text-base-content">{{ user.fio }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-y-3 items-start">
+            <label class="label">Департамент</label>
+            <p class="text-base-content">{{ user.dep_name }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-y-3 items-start">
+            <label class="label">Должность</label>
+            <p class="text-base-content">{{ user.post }}</p>
+        </div>
 
     </div>
 </div>
