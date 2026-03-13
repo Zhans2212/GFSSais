@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from app.config import setup_static
+from app.config import setup_static, hostname, port
 from app.routers import reports
 from app.routers import auth
 from app.routers import user
@@ -17,3 +17,7 @@ app.include_router(user.router, prefix="/profile", tags=["User"])
 @app.get("/", response_class=HTMLResponse)
 async def home():
     return RedirectResponse("/reports", status_code=303)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host=hostname, port=port)

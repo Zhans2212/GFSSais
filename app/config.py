@@ -2,6 +2,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic_settings import BaseSettings
 
+hostname = "127.0.0.1"
+port = 8000
+
 templates = Jinja2Templates(directory="app/templates")
 
 def setup_static(app):
