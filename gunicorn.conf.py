@@ -13,9 +13,11 @@ keepalive = 5
 
 
 # Логи
-loglevel = "info"
-accesslog = "-"
-errorlog = "-"
+loglevel = 'info'
+access_log_format = '%({x-forwarded-for}i)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"  "%(a)s"'
+accesslog = "logs/refund-gunicorn-access.log"
+error_log_format = '%({x-forwarded-for}i)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"  "%(a)s"'
+errorlog = "logs/refund-gunicorn-error.log"
 
 
 # Ограничение запросов (защита от DoS)

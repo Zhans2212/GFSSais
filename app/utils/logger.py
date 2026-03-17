@@ -6,7 +6,7 @@ from app.config import debug
 
 
 def init_logger():
-    logger = logging.getLogger("GFSSais")
+    logger = logging.getLogger("GFSSrefund")
 
     if logger.handlers:
         return logger
@@ -25,7 +25,7 @@ def init_logger():
 
     # файл с ротацией
     file_handler = RotatingFileHandler(
-        f"{LOG_PATH}/ais.log",
+        f"{LOG_PATH}/refund.log",
         maxBytes=5 * 1024 * 1024,  # 5MB
         backupCount=5,
         encoding="utf-8"
