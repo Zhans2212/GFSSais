@@ -1,0 +1,14 @@
+[Unit]
+Description=REFUNDING-2026
+After=network.target
+
+[Service]
+Type=simple
+User=refunding
+Group=refunding
+WorkingDirectory=/home/refunding/GFSSais
+Environment="PATH=/home/refunding/GFSSais/venv/bin" "LD_LIBRARY_PATH=/home/oracle/client/21.3/lib" "ORACLE_HOME=/home/oracle/client/21.3"
+ExecStart=/home/refunding/GFSSais/venv/bin/gunicorn
+
+[Install]
+WantedBy=multi-user.target

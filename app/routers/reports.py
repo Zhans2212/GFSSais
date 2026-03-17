@@ -12,9 +12,7 @@ from typing import List
 from starlette.responses import StreamingResponse
 
 from app.core.security import get_current_user_optional
-from app.db.engine import engine
 from app.db.get_tables import get_refund_list, get_person_by_iin, get_order_rows
-from app.db.models import ApprovedRefund, Person
 from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_set_status
 from app.utils.get_excel_418 import rows_to_excel

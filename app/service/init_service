@@ -1,0 +1,5 @@
+#systemctl get-default
+systemctl daemon-reload
+systemctl enable /home/refunding/GFSSais/service/refunding.service
+systemctl start refunding
+systemctl status -l refunding
