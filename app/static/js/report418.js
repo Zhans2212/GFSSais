@@ -17,6 +17,9 @@ return {
     },
     download() {
         window.location.href = `/reports/get_report_excel?date=${this.date}`
+    },
+    downloadPdf() {
+        window.location.href = `/reports/get_report_pdf?date=${this.date}`
     }
 }
 }

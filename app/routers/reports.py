@@ -15,7 +15,7 @@ from app.core.security import get_current_user_optional
 from app.db.get_tables import get_refund_list, get_person_by_iin, get_order_rows
 from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_set_status
-from app.utils.get_excel_418 import rows_to_excel
+from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
 from app.utils.masker import mask_user_name, mask_iin, mask_ids
 from app.utils.no_cache import no_cache
@@ -235,3 +235,26 @@ async def get_report_excel(
             date
         )
         raise HTTPException(status_code=500, detail="Ошибка при формировании Excel-отчета")
+
+@router.get("/get_report_pdf")
+async def get_report_pdf(
+    request: Request,
+    date: str = Query(default=datetime.today().strftime("%d.%m.%Y"))
+):
+    user = get_current_user_optional(request)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    rows = get_order_rows(date)
+    pdf_file = rows_to_pdf(rows, date, user.get("fio"))
+
+    safe_date = date.replace(".", "_")
+
+    return StreamingResponse(
+        pdf_file,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="report_{safe_date}.pdf"'
+        }
+    )

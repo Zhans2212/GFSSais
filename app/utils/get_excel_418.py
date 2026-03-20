@@ -1,6 +1,195 @@
 from io import BytesIO
+from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Side, Font
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+
+def rows_to_pdf(rows=None, date=None, fio=None):
+    buffer = BytesIO()
+
+    font_regular = Path("app/static/fonts/times.ttf")
+    font_bold = Path("app/static/fonts/timesbd.ttf")
+    font_italic = Path("app/static/fonts/timesit.ttf")
+
+    pdfmetrics.registerFont(TTFont("TimesNewRoman", str(font_regular)))
+    pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", str(font_bold)))
+    pdfmetrics.registerFont(TTFont("TimesNewRoman-Italic", str(font_italic)))
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=20,
+        rightMargin=20,
+        topMargin=20,
+        bottomMargin=20,
+    )
+
+    styles = getSampleStyleSheet()
+
+    normal_style = ParagraphStyle(
+        "NormalTNR",
+        parent=styles["Normal"],
+        fontName="TimesNewRoman",
+        fontSize=11,
+        leading=14,
+        alignment=TA_LEFT,
+    )
+
+    italic_style = ParagraphStyle(
+        "ItalicTNR",
+        parent=styles["Normal"],
+        fontName="TimesNewRoman-Italic",
+        fontSize=11,
+        leading=14,
+        alignment=TA_LEFT,
+    )
+
+    title_style = ParagraphStyle(
+        "TitleTNR",
+        parent=styles["Title"],
+        fontName="TimesNewRoman-Bold",
+        fontSize=14,
+        leading=18,
+        alignment=TA_CENTER,
+    )
+
+    center_style = ParagraphStyle(
+        "CenterTNR",
+        parent=styles["Normal"],
+        fontName="TimesNewRoman",
+        fontSize=11,
+        leading=14,
+        alignment=TA_CENTER,
+    )
+
+    elements = []
+
+    # --- HEADER ---
+    elements.append(Paragraph(date or "", italic_style))
+    elements.append(Spacer(1, 62))
+    elements.append(Paragraph("Тапсырыс", title_style))
+    elements.append(Spacer(1, 12))
+
+    header_text = (
+        "«Мемлекеттік әлеуметтік сақтандыру қоры» акционерлік қоғамының "
+        "Бухгалтерлік есеп, есептілік және инвестициялық талдау департаменті"
+        "<br/>Мемлекеттік корпорацияның шотына келесі артық (қате) төленген "
+        "әлеуметтік аударымдарды және (немесе) өсімпұлдар сомаларын аударсын:"
+    )
+
+    elements.append(Paragraph(header_text, center_style))
+    elements.append(Spacer(1, 26))
+
+    # --- DATA ---
+    d5 = e5 = f5 = g5 = h5 = i5 = 0
+    d6 = e6 = f6 = g6 = h6 = i6 = 0
+
+    if rows:
+        for amount, count, knp, typ in rows:
+            amount = amount or 0
+            count = count or 0
+
+            if knp == "026":
+                d5 = count
+                e5 = amount
+            elif knp == "094" and typ is None:
+                f6 = count
+                g6 = amount
+            elif knp == "094" and typ == "О":
+                h6 = count
+                i6 = amount
+
+    c5 = e5 + g5 + i5
+    c6 = e6 + g6 + i6
+    b5 = d5 + f5 + h5
+    b6 = d6 + f6 + h6
+    b7 = b5 + b6
+    c7 = c5 + c6
+
+    data = [
+        [
+            "ТТК",
+            "Барлығы", "",
+            "Соның ішінде", "", "", "", "", ""
+        ],
+        [
+            "",
+            "Адам саны", "Сома (теңге)",
+            "026 ТТК б-ша ӘА", "",
+            "094 ТТК б-ша ӘА өсімпұлы", "",
+            "БТ", ""
+        ],
+        [
+            "",
+            "", "",
+            "Адам саны", "Сома (теңге)",
+            "Адам саны", "Сома (теңге)",
+            "Адам саны", "Сома (теңге)"
+        ],
+        ["026", b5, f"{c5:,.2f}", d5, f"{e5:,.2f}", f5, f"{g5:,.2f}", h5, f"{i5:,.2f}"],
+        ["094", b6, f"{c6:,.2f}", d6, f"{e6:,.2f}", f6, f"{g6:,.2f}", h6, f"{i6:,.2f}"],
+        ["", b7, f"{c7:,.2f}", "", "", "", "", "", ""],
+    ]
+
+    table = Table(
+        data,
+        repeatRows=1,
+        colWidths=[50, 80, 100, 80, 90, 120, 120, 80, 90]
+    )
+
+    table.setStyle(TableStyle([
+        # --- ОБЪЕДИНЕНИЯ ---
+        ("SPAN", (0, 0), (0, 2)),  # ТТК
+        ("SPAN", (1, 0), (2, 0)),  # Барлығы
+        ("SPAN", (3, 0), (8, 0)),  # Соның ішінде
+
+        ("SPAN", (3, 1), (4, 1)),  # 026
+        ("SPAN", (5, 1), (6, 1)),  # 094
+        ("SPAN", (7, 1), (8, 1)),  # БТ
+
+        ("SPAN", (1, 1), (1, 2)),  # Адам саны (Барлығы)
+        ("SPAN", (2, 1), (2, 2)),  # Сома (Барлығы)
+
+        # --- СТИЛЬ ---
+        ("FONTNAME", (0, 0), (-1, -1), "TimesNewRoman"),
+        ("FONTNAME", (0, 0), (-1, 2), "TimesNewRoman-Bold"),
+
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ("BACKGROUND", (0, 0), (-1, 2), colors.lightgrey),
+
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    elements.append(table)
+    elements.append(Spacer(1, 26))
+
+    elements.append(
+        Paragraph(
+            '"МӘСҚ" АҚ Басқарма Төрағасының орынбасары __________________________',
+            title_style
+        )
+    )
+
+    elements.append(Spacer(1, 62))
+    elements.append(Paragraph(f"Орынд. {fio or ''}", italic_style))
+
+    doc.build(elements)
+
+    buffer.seek(0)
+    return buffer
 
 
 def rows_to_excel(rows=None, date=None, fio=None):
