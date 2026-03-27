@@ -338,7 +338,7 @@ def rows_to_excel(rows=None, date=None, fio=None):
     ])
 
     ws.merge_cells(f"{cell('A',10)}:{cell('I',10)}")
-    ws[cell("A",10)] = '"МƏСҚ" АҚ Басқарма Төрағасының орынбасары__________________________________________'
+    ws[cell("A",10)] = '«МӘСҚ» АҚ Басқарма Төрағасының орынбасары__________________________________________'
     ws[cell("A",10)].alignment = center
     ws[cell("A",10)].font = Font(bold=True, size=14)
 
