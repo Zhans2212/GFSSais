@@ -56,7 +56,7 @@ def login_required(request: Request):
 
     if "username" not in session or 'roles' not in session:
         log.info(f'---> login_required. USERNAME not in SESSION: {session}')
-        status = try_auto_login(request)
+        status = try_auto_login(request, json_user)
         if not status:
             log.info(f'---> login_required. try_auto_login: {status}')
             raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
