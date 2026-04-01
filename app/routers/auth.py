@@ -124,7 +124,7 @@ async def logout(request: Request):
     masked_ip = mask_ip(ip)
 
     current_user = request.state.user if hasattr(request.state, "user") else None
-    user_name = str(current_user.get("fio") or current_user.get("sub") or "authorized_user") if current_user else "anonymous"
+    user_name = str(current_user.fio or "authorized_user") if current_user else "anonymous"
 
     log.info("POST /logout requested, user=%s, ip=%s", user_name, masked_ip)
     # session = request.session

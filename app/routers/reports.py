@@ -97,7 +97,7 @@ async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(l
         log.warning("Unauthorized access to POST /accept_all")
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    user_top_control = user.get("top_control")
+    user_top_control = user.top_control
 
     if user_top_control == "4":
         log.warning(
@@ -203,7 +203,7 @@ async def get_report_excel(
             len(rows)
         )
 
-        excel_file = rows_to_excel(rows, date, user.get("fio"))
+        excel_file = rows_to_excel(rows, date, user.fio)
 
         log.info(
             "Excel file created successfully for user=%s, date=%s, rows_count=%s",
@@ -239,7 +239,7 @@ async def get_report_pdf(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     rows = get_order_rows(date)
-    pdf_file = rows_to_pdf(rows, date, user.get("fio"))
+    pdf_file = rows_to_pdf(rows, date, user.fio)
 
     safe_date = date.replace(".", "_")
 
