@@ -21,24 +21,6 @@ def mask_username(username: str) -> str:
 
     return f"{username[:2]}***{username[-1:]}"
 
-def mask_user_name(user: Optional[dict]) -> str:
-    if not user:
-        return "anonymous"
-
-    fio = str(user.get("fio") or "").strip()
-    if not fio:
-        return "unknown_user"
-
-    parts = fio.split()
-    if len(parts) == 1:
-        return parts[0]
-
-    # Пример: Иванов И.П.
-    last_name = parts[0]
-    initials = "".join(f"{p[0]}." for p in parts[1:] if p)
-    return f"{last_name} {initials}".strip()
-
-
 def mask_ids(ids: List[int], visible: int = 3) -> str:
     if not ids:
         return "[]"

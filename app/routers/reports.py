@@ -11,13 +11,13 @@ from typing import List
 
 from starlette.responses import StreamingResponse
 
-from app.core.security import get_current_user_optional
+from app.core.security import login_required
 from app.db.get_tables import get_refund_list, get_person_by_iin, get_order_rows
 from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_set_status
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
-from app.utils.masker import mask_user_name, mask_iin, mask_ids
+from app.utils.masker import mask_iin, mask_ids
 from app.utils.no_cache import no_cache
 
 router = APIRouter()
@@ -26,25 +26,18 @@ class AcceptAllRequest(BaseModel):
     sior_ids: List[int]
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    user = get_current_user_optional(request)
-    user_name = mask_user_name(user)
-
+async def home(request: Request, user=Depends(login_required)):
     log.info("GET / requested")
 
-    if not user:
-        log.warning("Unauthorized access to GET /, redirecting to /login")
-        return RedirectResponse("/login", status_code=303)
-
     refund_date = "05.12.2024"
-    log.info("User %s requested refunds list for date=%s", user_name, refund_date)
+    log.info("User %s requested refunds list for date=%s", user.username, refund_date)
 
     try:
         refunds = get_refund_list(refund_date, package_name=PACKAGE_NAME)
 
         log.info(
             "Refunds list loaded successfully for user=%s, records_count=%s, date=%s",
-            user_name,
+            user.username,
             len(refunds),
             refund_date
         )
@@ -52,7 +45,7 @@ async def home(request: Request):
     except Exception:
         log.exception(
             "Failed to load refunds list for user=%s, date=%s",
-            user_name,
+            user.username,
             refund_date
         )
         raise HTTPException(status_code=500, detail="Ошибка при загрузке списка")
@@ -95,9 +88,8 @@ async def get_person(iin: str):
 
 
 @router.post("/accept_all")
-async def accept_all(payload: AcceptAllRequest, request: Request):
-    user = get_current_user_optional(request)
-    user_name = mask_user_name(user)
+async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(login_required)):
+    user_name = user.masked_name
 
     log.info("POST /accept_all requested by user=%s", user_name)
 
@@ -165,9 +157,8 @@ async def accept_all(payload: AcceptAllRequest, request: Request):
 
 
 @router.get("/report418")
-async def get_report418(request: Request):
-    user = get_current_user_optional(request)
-    user_name = mask_user_name(user)
+async def get_report418(request: Request, user=Depends(login_required)):
+    user_name = user.masked_name
 
     log.info("GET /report418 requested")
 
@@ -188,10 +179,11 @@ async def get_report418(request: Request):
 @router.get("/get_report_excel")
 async def get_report_excel(
     request: Request,
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y"))
+    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    user=Depends(login_required)
 ):
-    user = get_current_user_optional(request)
-    user_name = mask_user_name(user)
+
+    user_name = user.masked_name
 
     log.info("GET /get_report_excel requested, date=%s", date)
 
@@ -239,9 +231,9 @@ async def get_report_excel(
 @router.get("/get_report_pdf")
 async def get_report_pdf(
     request: Request,
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y"))
+    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    user=Depends(login_required)
 ):
-    user = get_current_user_optional(request)
 
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")

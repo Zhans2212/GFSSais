@@ -1,84 +1,69 @@
-from app.models.user import User
-from app.utils.roles import first_level, second_level, third_level
-from datetime import datetime, timedelta
-from jose import jwt
-from fastapi import Depends, HTTPException, Request
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import HTTPException, Request
+from starlette.status import HTTP_401_UNAUTHORIZED
+
+import requests
+
 from app.config import settings
-
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = "HS256"
-
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+from app.core.sso_client import sso_check
+from app.models.user_model import USER
+from app.utils.logger import log
 
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=8)):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+def check_login(request: Request):
+    ip = request.client.host if request.client else ""
+    resp = sso_check(ip)
 
+    log.info(f"LOGIN CHECK → {resp}")
 
-def get_current_user(request: Request):
-    token_from_cookie = request.cookies.get("access_token")
-    effective_token = token_from_cookie or request.headers.get("Authorization", "").split(" ")[-1]
-
-    if not effective_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    print(f"TOKEN: {effective_token}")
-    try:
-        payload = jwt.decode(effective_token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
-def get_current_user_optional(request: Request):
-    token = request.cookies.get("access_token")
-
-    if not token:
+    if resp.status_code != 200:
         return None
 
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except Exception:
+    resp_json = resp.json()
+    log.info(f"LOGIN GET. resp_json: {resp_json}")
+
+    if resp_json.get("status") != 200:
+        log.info(f"Try auto login → USER {ip} not registered")
         return None
 
+    json_user = resp_json["user"]
+    log.info(f"LOGIN GET. json_user: {json_user}")
+    return json_user
 
 
-def build_user_from_sso(src_user: dict) -> User:
-    if not all(k in src_user for k in ["login_name", "fio", "dep_name", "post"]):
-        raise HTTPException(status_code=403, detail="Invalid SSO data")
+def try_auto_login(request: Request, json_user):
+    ip = request.client.host if request.client else ""
+    user = USER().authenticate_and_init(json_user, request)
 
-    username = src_user["login_name"]
-    dep_name = src_user["dep_name"]
-    post = src_user["post"]
+    if not user:
+        log.info("Try auto login → user object empty")
+        request.state.user = None
+        return False
 
-    roles = []
-    top_control = 0
+    request.state.user = user
 
-    if post in first_level:
-        roles.append("first_level")
-        top_control = 0
-    elif post in second_level:
-        roles.append("second_level")
-        top_control = 1
-    elif post in third_level:
-        roles.append("third_level")
-        top_control = 3
-    else:
-        roles.append("guest")
-        top_control = 4
-        # raise HTTPException(status_code=403, detail="No role defined")
+    log.info(f"SUCCESS. Try auto login → USER IP {ip}: {request.session}")
+    return True
 
-    return User(
-        username=username,
-        fio=src_user["fio"],
-        dep_name=dep_name,
-        post=post,
-        rfbn_id=src_user.get("rfbn_id"),
-        roles=roles,
-        top_control=top_control
-    )
+
+def login_required(request: Request):
+    json_user = check_login(request)
+    if not json_user:
+        log.info(f'---> login_required. user out of session')
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
+
+    # if "username" not in session or 'roles' not in session:
+    session = request.session
+
+    if "username" not in session or 'roles' not in session:
+        log.info(f'---> login_required. USERNAME not in SESSION: {session}')
+        status = try_auto_login(request)
+        if not status:
+            log.info(f'---> login_required. try_auto_login: {status}')
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
+
+    user = USER().restore_user(request)
+    if not user:
+        raise HTTPException(HTTP_401_UNAUTHORIZED)
+
+    request.state.user = user
+    return request.state.user

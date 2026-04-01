@@ -1,21 +1,44 @@
-from fastapi import FastAPI
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-
-from app.config import setup_static, hostname, port
-from app.routers import reports
-from app.routers import auth
-from app.routers import user
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.status import HTTP_401_UNAUTHORIZED
+
+from app.config import setup_static, hostname, port, settings
+from app.routers import reports, auth, user
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
+
+class AuthRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # login/logout и api пропускаем
+        if (
+            request.url.path in ("/login", "/logout")
+            or request.url.path.startswith("/api")
+            or request.url.path.startswith("/static")
+        ):
+            return await call_next(request)
+
+        response = await call_next(request)
+
+        if response.status_code == HTTP_401_UNAUTHORIZED:
+            return RedirectResponse(url="/login", status_code=303)
+
+        return response
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(
-        title="My API",
-        version="1.0.0",
-        docs_url="/docs",
-        redoc_url="/redoc",
+    app = FastAPI()
+
+    # Сессии нужны для request.session
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=SECRET_KEY,
     )
+
+    app.add_middleware(AuthRedirectMiddleware)
 
     # Роутеры
     app.include_router(reports.router, prefix="/reports", tags=["Reports"])
@@ -24,11 +47,10 @@ def create_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     async def home():
-        return RedirectResponse("/reports", status_code=303)
+        return RedirectResponse(url="/reports", status_code=303)
 
     return app
 
 
 app = create_app()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
