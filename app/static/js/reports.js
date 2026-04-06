@@ -229,9 +229,14 @@ return {
     this.clearSavedState();
   },
 
-  rowVisible(tab, status, typePayer, referIn, iin) {
+  rowVisible(tab, status, type_payer, knp, referIn, iin) {
     if (tab.state.status !== 'all' && String(status) !== String(tab.state.status)) return false;
-    if (tab.state.type !== 'any' && String(typePayer) !== String(tab.state.type)) return false;
+    if (tab.state.type !== 'any') {
+        const knpValue = String(knp ?? '').trim();
+
+        if (tab.state.type === 'СО' && knpValue !== '026') return false;
+        if (tab.state.type === 'ЕП' && knpValue !== '094') return false;
+    }
 
     const q = (tab.state.query || '').toLowerCase();
     if (!q) return true;

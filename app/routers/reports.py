@@ -29,7 +29,7 @@ class AcceptAllRequest(BaseModel):
 async def home(request: Request, user=Depends(login_required)):
     log.info("GET / requested")
 
-    refund_date = "05.12.2024"
+    refund_date = "02.04.2026"
     log.info("User %s requested refunds list for date=%s", user.username, refund_date)
 
     try:

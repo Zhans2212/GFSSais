@@ -11,7 +11,6 @@ SECURITY_KEYS = {
     "post",
     "roles",
     "top_control",
-    "top_view",
     "rfbn_id",
 }
 
@@ -30,7 +29,6 @@ class USER:
         self.dep_name = ""
         self.roles = ""
         self.top_control = 0
-        self.top_view = 0
         self.rfbn_id = ""
         self.fio = ""
         self.full_name = ""
@@ -49,8 +47,7 @@ class USER:
         self.dep_name = session.get("dep_name", "")
         self.post = session.get("post", "")
         self.roles = session.get("roles", "")
-        self.top_control = session.get("top_control", 0)
-        self.top_view = session.get("top_view", 0)
+        self.top_control = session.get("top_control", 4)
         self.rfbn_id = session.get("rfbn_id", "")
         self.ip_addr = session.get("ip_addr", "")
         self.full_name = session.get("fio", "")
@@ -96,7 +93,6 @@ class USER:
             f"\tFIO: {self.fio}\n"
             f"\tROLES: {self.roles}\n"
             f"\tPOST: {self.post}\n"
-            f"\tTOP_VIEW: {self.top_view}\n"
             f"\tTOP_LEVEL: {self.top_control}\n"
             f"\tRFBN: {self.rfbn_id}\n"
             f"\tDEP_NAME: {self.dep_name}\n<---"

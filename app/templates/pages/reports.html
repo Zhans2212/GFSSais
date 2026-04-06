@@ -190,7 +190,7 @@
                 @click="loadPerson(tab, '{{ refund.iin }}')"
                 :class="tab.state.selectedIin === '{{ refund.iin }}' ? 'bg-accent-content' : ''"
                 x-show="
-                  (tab.kind === 'returns' && rowVisible(tab, '{{ refund.status }}', '{{ refund.type_payer }}', '{{ refund.refer_in }}', '{{ refund.iin }}'))
+                  (tab.kind === 'returns' && rowVisible(tab, '{{ refund.status }}', '{{ refund.type_payer }}', '{{ refund.knp }}', '{{ refund.refer_in }}', '{{ refund.iin }}'))
                   ||
                   (tab.kind === 'wrong' && '{{ refund.status }}' === '100')
                 "
