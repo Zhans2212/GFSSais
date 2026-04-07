@@ -4,15 +4,14 @@ function refundsTable() {
     loading: false,
     error: '',
     currentPage: 1,
-    pageSize: 25,
+    pageSize: 15,
 
     search: '',
     statusFilter: 'all',
     typeFilter: 'any',
-    selectedDate: '',
+    selectedDate: '02.04.2026',
 
     async init() {
-      this.selectedDate = "02.04.2026";
       await this.loadData();
     },
 
@@ -21,16 +20,16 @@ function refundsTable() {
       this.error = '';
 
       try {
-        const response = await fetch('/reports/data?date=02.04.2026');
-
+        const response = await fetch(`/reports/data?date=${encodeURIComponent(this.selectedDate)}`);
         console.log('FETCH STATUS:', response.status);
 
-        const data = await response.json();
+        const text = await response.text();
+        const data = JSON.parse(text);
+
         console.log('DATA:', data);
 
         this.rows = Array.isArray(data.rows) ? data.rows : [];
         console.log('ROWS LOADED:', this.rows.length);
-        console.log('FIRST ROW:', this.rows[0]);
 
         this.currentPage = 1;
       } catch (error) {
@@ -45,8 +44,7 @@ function refundsTable() {
     get filteredRows() {
       return this.rows.filter(row => {
         const rowStatus = String(row.status ?? '');
-        const rowType = String(row.type_payer ?? '').trim().toUpperCase();
-        const knp = String(row.knp ?? '');
+        const knp = String(row.knp ?? '').padStart(3, '0');
 
         const searchValue = this.search.trim().toLowerCase();
         const refer = String(row.refer_in ?? '').toLowerCase();
@@ -97,38 +95,24 @@ function refundsTable() {
       return Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
     },
 
-    get visiblePages() {
-      const total = this.totalPages;
-      const current = this.currentPage;
-      const maxVisible = 5;
-
-      let start = Math.max(1, current - 2);
-      let end = Math.min(total, start + maxVisible - 1);
-
-      if (end - start < maxVisible - 1) {
-        start = Math.max(1, end - maxVisible + 1);
-      }
-
-      const pages = [];
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      return pages;
+    goToFirstPage() {
+      this.currentPage = 1;
     },
 
-    goToPage(page) {
-      if (page < 1) page = 1;
-      if (page > this.totalPages) page = this.totalPages;
-      this.currentPage = page;
+    goToLastPage() {
+      this.currentPage = this.totalPages;
     },
 
     prevPage() {
-      if (this.currentPage > 1) this.currentPage--;
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
     },
 
     nextPage() {
-      if (this.currentPage < this.totalPages) this.currentPage++;
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
     },
 
     toNumber(value) {
@@ -148,14 +132,6 @@ function refundsTable() {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(value || 0);
-    },
-
-    formatToday() {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      return `${day}.${month}.${year}`;
     }
   };
 }

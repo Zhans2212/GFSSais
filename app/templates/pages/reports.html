@@ -49,7 +49,7 @@
       </div>
 
       <!-- ТАБЛИЦА ВОЗВРАТЫ СО -->
-      <div class="overflow-x-auto h-100 bg-base-200 rounded-box shadow">
+      <div class="overflow-x-auto h-auto bg-base-200 rounded-box shadow">
         <table class="table table-xs table-pin-rows">
           <thead>
             <tr class="text-secondary-content bg-base-200">
@@ -130,37 +130,34 @@
           <b x-text="filteredRows.length"></b>
         </div>
 
-        <div class="flex items-center gap-3">
-          <select class="select select-sm select-bordered"
-                  x-model.number="pageSize"
-                  @change="currentPage = 1">
-            <option :value="10">10</option>
-            <option :value="25">25</option>
-            <option :value="50">50</option>
-            <option :value="100">100</option>
-          </select>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-sm"
+                  @click="goToFirstPage()"
+                  :disabled="currentPage === 1">
+            |&lt;
+          </button>
 
-          <div class="join">
-            <button class="join-item btn btn-sm"
-                    @click="prevPage()"
-                    :disabled="currentPage === 1">
-              «
-            </button>
+          <button class="btn btn-sm"
+                  @click="prevPage()"
+                  :disabled="currentPage === 1">
+            &lt;
+          </button>
 
-            <template x-for="page in visiblePages" :key="page">
-              <button class="join-item btn btn-sm"
-                      :class="{ 'btn-active': currentPage === page }"
-                      @click="goToPage(page)"
-                      x-text="page">
-              </button>
-            </template>
+          <span class="px-3 text-sm whitespace-nowrap">
+            Страница <b x-text="currentPage"></b> из <b x-text="totalPages"></b>
+          </span>
 
-            <button class="join-item btn btn-sm"
-                    @click="nextPage()"
-                    :disabled="currentPage === totalPages">
-              »
-            </button>
-          </div>
+          <button class="btn btn-sm"
+                  @click="nextPage()"
+                  :disabled="currentPage === totalPages">
+            &gt;
+          </button>
+
+          <button class="btn btn-sm"
+                  @click="goToLastPage()"
+                  :disabled="currentPage === totalPages">
+            &gt;|
+          </button>
         </div>
       </div>
 
