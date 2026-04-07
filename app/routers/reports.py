@@ -2,9 +2,8 @@ from datetime import datetime
 
 from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-import oracledb
+import json
+from decimal import Decimal
 
 from pydantic import BaseModel
 from typing import List
@@ -27,35 +26,46 @@ class AcceptAllRequest(BaseModel):
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, user=Depends(login_required)):
-    log.info("GET / requested")
-
-    refund_date = "02.04.2026"
-    log.info("User %s requested refunds list for date=%s", user.username, refund_date)
-
-    try:
-        refunds = get_refund_list(refund_date, package_name=PACKAGE_NAME)
-
-        log.info(
-            "Refunds list loaded successfully for user=%s, records_count=%s, date=%s",
-            user.username,
-            len(refunds),
-            refund_date
-        )
-
-    except Exception:
-        log.exception(
-            "Failed to load refunds list for user=%s, date=%s",
-            user.username,
-            refund_date
-        )
-        raise HTTPException(status_code=500, detail="Ошибка при загрузке списка")
+    log.info("GET /reports requested by user=%s", user.masked_name)
 
     return no_cache(
         templates.TemplateResponse(
             "pages/reports.html",
-            {"request": request, "refunds": refunds, "user": user}
+            {"request": request, "user": user}
         )
     )
+
+
+@router.get("/data")
+async def get_reports_data(
+    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    user=Depends(login_required)
+):
+    user_name = user.masked_name
+    log.info("GET /reports/data requested by user=%s, date=%s", user_name, date)
+
+    try:
+        refunds = get_refund_list(date, package_name=PACKAGE_NAME)
+        # refunds = json.loads(json.dumps(refunds, default=float))
+
+        log.info(
+            "Sending refunds: count=%s, sample=%s",
+            len(refunds),
+            refunds[:2] if refunds else "EMPTY"
+        )
+
+        return {
+            "rows": refunds,
+            "date": date,
+            "count": len(refunds),
+        }
+    except Exception:
+        log.exception(
+            "Failed to load refunds data for user=%s, date=%s",
+            user_name,
+            date
+        )
+        raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
 
 @router.get("/person/{iin}")
