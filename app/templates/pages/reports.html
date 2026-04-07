@@ -161,38 +161,109 @@
         </div>
       </div>
 
-      <!-- Детали выбранного человека: у каждой вкладки свои -->
-      <div class="overflow-x-auto h-60 p-5 mt-6 bg-base-200 rounded-box shadow">
-        <template>
-          <span class="loading loading-spinner loading-lg"></span>
-        </template>
+      <!-- Формирование отчета -->
+      <div class="mt-6" x-data="orderReport()" x-init="init()">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <label class="input outline-none text-secondary-content">
+              <span class="label">Дата</span>
+              <input type="text" x-model="selectedDate" placeholder="дд.мм.гггг">
+            </label>
 
-        <template>
-          <p class="text-error"></p>
-        </template>
-
-        <template>
-          <div>
-            <h3 class="text-lg text-accent font-bold mb-2">Данные физ.лица</h3>
-
-            <div class="flex gap-1 text-base-content">
-              <b>ИИН:</b> <p class="select-all"></p>
-            </div>
-
-            <div class="flex gap-1 text-base-content">
-              <b>ФИО:</b>
-              <p class="select-all"></p>
-            </div>
-
-            <div class="flex gap-1 text-base-content">
-              <b>Дата рождения:</b> <p class="select-all"></p>
-            </div>
-
-            <div class="flex gap-1 text-base-content">
-              <b>Адрес:</b> <p class="select-all"></p>
-            </div>
+            <button class="btn btn-primary" type="button" @click="loadReport()" :disabled="loading">
+              Показать
+            </button>
           </div>
-        </template>
+
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-outline">Сформировать отчет</div>
+            <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-10 w-56 p-2 shadow">
+              <li>
+                <a href="#" @click.prevent="downloadExcel()">Отчет - 418 (Excel)</a>
+              </li>
+              <li>
+                <a href="#" @click.prevent="downloadPdf()">Отчет - 418 (PDF)</a>
+              </li>
+              <li>
+                <a href="#" @click.prevent>Отчет - 403</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto p-5 bg-base-200 rounded-box shadow min-h-[260px]">
+          <template x-if="loading">
+            <div class="flex justify-center py-10">
+              <span class="loading loading-spinner loading-lg"></span>
+            </div>
+          </template>
+
+          <template x-if="error">
+            <p class="text-error" x-text="error"></p>
+          </template>
+
+          <template x-if="!loading && !error">
+            <div>
+              <div class="mb-3 text-sm opacity-80">
+                Дата отчета:
+                <b x-text="reportDate || selectedDate"></b>
+              </div>
+
+              <table class="table table-xs table-pin-rows">
+                <thead>
+                  <tr class="text-secondary-content bg-base-200">
+                    <th rowspan="3">ТТК</th>
+                    <th colspan="2">Барлығы</th>
+                    <th colspan="6">Соның ішінде</th>
+                  </tr>
+                  <tr class="text-secondary-content bg-base-200">
+                    <th rowspan="2">Адам саны</th>
+                    <th rowspan="2">Сома (теңге)</th>
+                    <th colspan="2">026 ТТК б-ша ӘА</th>
+                    <th colspan="2">094 ТТК б-ша ӘА өсімпұлы</th>
+                    <th colspan="2">БТ</th>
+                  </tr>
+                  <tr class="text-secondary-content bg-base-200">
+                    <th>Адам саны</th>
+                    <th>Сома (теңге)</th>
+                    <th>Адам саны</th>
+                    <th>Сома (теңге)</th>
+                    <th>Адам саны</th>
+                    <th>Сома (теңге)</th>
+                  </tr>
+                </thead>
+
+                <tbody class="text-base-content">
+                  <template x-for="row in rows" :key="row.ttk">
+                    <tr>
+                      <td x-text="row.ttk"></td>
+                      <td x-text="row.total_count"></td>
+                      <td x-text="formatAmount(row.total_amount)"></td>
+                      <td x-text="row.part_026_count"></td>
+                      <td x-text="formatAmount(row.part_026_amount)"></td>
+                      <td x-text="row.part_094_count"></td>
+                      <td x-text="formatAmount(row.part_094_amount)"></td>
+                      <td x-text="row.part_bt_count"></td>
+                      <td x-text="formatAmount(row.part_bt_amount)"></td>
+                    </tr>
+                  </template>
+
+                  <tr class="font-bold bg-base-300">
+                    <td x-text="total.ttk || 'Барлығы'"></td>
+                    <td x-text="total.total_count || 0"></td>
+                    <td x-text="formatAmount(total.total_amount || 0)"></td>
+                    <td x-text="total.part_026_count || 0"></td>
+                    <td x-text="formatAmount(total.part_026_amount || 0)"></td>
+                    <td x-text="total.part_094_count || 0"></td>
+                    <td x-text="formatAmount(total.part_094_amount || 0)"></td>
+                    <td x-text="total.part_bt_count || 0"></td>
+                    <td x-text="formatAmount(total.part_bt_amount || 0)"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 

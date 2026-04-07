@@ -67,6 +67,107 @@ async def get_reports_data(
         )
         raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
+@router.get("/order-data")
+async def get_order_data(
+    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    user=Depends(login_required)
+):
+    user_name = user.masked_name
+    log.info("GET /reports/order-data requested by user=%s, date=%s", user_name, date)
+
+    if not user:
+        log.warning("Unauthorized access to GET /reports/order-data")
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        rows = get_order_rows(date)
+
+        data = {
+            "026": {
+                "label": "026 ТТК б-ша ӘА",
+                "count": 0,
+                "amount": 0.0,
+            },
+            "094_penalty": {
+                "label": "094 ТТК б-ша ӘА өсімпұлы",
+                "count": 0,
+                "amount": 0.0,
+            },
+            "094_bt": {
+                "label": "БТ",
+                "count": 0,
+                "amount": 0.0,
+            },
+        }
+
+        for amount, count, knp, typ in rows:
+            amount_value = float(amount or 0)
+            count_value = int(count or 0)
+            knp_value = str(knp or "").zfill(3)
+
+            if knp_value == "026":
+                data["026"]["count"] = count_value
+                data["026"]["amount"] = amount_value
+
+            elif knp_value == "094" and typ is None:
+                data["094_penalty"]["count"] = count_value
+                data["094_penalty"]["amount"] = amount_value
+
+            elif knp_value == "094" and str(typ) == "О":
+                data["094_bt"]["count"] = count_value
+                data["094_bt"]["amount"] = amount_value
+
+        table_rows = [
+            {
+                "ttk": "026",
+                "total_count": data["026"]["count"],
+                "total_amount": data["026"]["amount"],
+                "part_026_count": data["026"]["count"],
+                "part_026_amount": data["026"]["amount"],
+                "part_094_count": 0,
+                "part_094_amount": 0.0,
+                "part_bt_count": 0,
+                "part_bt_amount": 0.0,
+            },
+            {
+                "ttk": "094",
+                "total_count": data["094_penalty"]["count"] + data["094_bt"]["count"],
+                "total_amount": data["094_penalty"]["amount"] + data["094_bt"]["amount"],
+                "part_026_count": 0,
+                "part_026_amount": 0.0,
+                "part_094_count": data["094_penalty"]["count"],
+                "part_094_amount": data["094_penalty"]["amount"],
+                "part_bt_count": data["094_bt"]["count"],
+                "part_bt_amount": data["094_bt"]["amount"],
+            },
+        ]
+
+        total_row = {
+            "ttk": "Барлығы",
+            "total_count": sum(r["total_count"] for r in table_rows),
+            "total_amount": sum(r["total_amount"] for r in table_rows),
+            "part_026_count": sum(r["part_026_count"] for r in table_rows),
+            "part_026_amount": sum(r["part_026_amount"] for r in table_rows),
+            "part_094_count": sum(r["part_094_count"] for r in table_rows),
+            "part_094_amount": sum(r["part_094_amount"] for r in table_rows),
+            "part_bt_count": sum(r["part_bt_count"] for r in table_rows),
+            "part_bt_amount": sum(r["part_bt_amount"] for r in table_rows),
+        }
+
+        return {
+            "date": date,
+            "rows": table_rows,
+            "total": total_row,
+        }
+
+    except Exception:
+        log.exception(
+            "Failed to build order report data for user=%s, date=%s",
+            user_name,
+            date
+        )
+        raise HTTPException(status_code=500, detail="Ошибка при формировании данных отчета")
+
 
 @router.get("/person/{iin}")
 async def get_person(iin: str):

@@ -135,3 +135,69 @@ function refundsTable() {
     }
   };
 }
+
+function orderReport() {
+  return {
+    rows: [],
+    total: {},
+    loading: false,
+    error: '',
+    reportDate: '',
+    selectedDate: '',
+
+    init() {
+      this.selectedDate = '02.04.2026';
+      this.loadReport();
+    },
+
+    getToday() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      return `${day}.${month}.${year}`;
+    },
+
+    async loadReport() {
+      this.loading = true;
+      this.error = '';
+
+      try {
+        const response = await fetch(`/reports/order-data?date=${encodeURIComponent(this.selectedDate)}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        this.rows = Array.isArray(data.rows) ? data.rows : [];
+        this.total = data.total || {};
+        this.reportDate = data.date || this.selectedDate;
+      } catch (error) {
+        console.error('Ошибка загрузки отчета:', error);
+        this.rows = [];
+        this.total = {};
+        this.error = 'Не удалось загрузить данные отчета';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    downloadExcel() {
+      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(this.selectedDate)}`;
+    },
+
+    downloadPdf() {
+      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(this.selectedDate)}`;
+    },
+
+    formatAmount(value) {
+      const num = Number(value || 0);
+      return new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(num);
+    }
+  };
+}
