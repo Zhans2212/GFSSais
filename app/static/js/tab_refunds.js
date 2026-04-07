@@ -46,6 +46,7 @@ function refundsTable() {
       return this.rows.filter(row => {
         const rowStatus = String(row.status ?? '');
         const rowType = String(row.type_payer ?? '').trim().toUpperCase();
+        const knp = String(row.knp ?? '');
 
         const searchValue = this.search.trim().toLowerCase();
         const refer = String(row.refer_in ?? '').toLowerCase();
@@ -62,7 +63,8 @@ function refundsTable() {
 
         const matchesType =
           this.typeFilter === 'any' ||
-          rowType === this.typeFilter.toUpperCase();
+          (this.typeFilter === 'СО' && knp === '026') ||
+          (this.typeFilter === 'ЕП' && knp === '094');
 
         return matchesSearch && matchesStatus && matchesType;
       });
