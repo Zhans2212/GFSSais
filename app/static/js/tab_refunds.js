@@ -11,6 +11,10 @@ function refundsTable() {
     typeFilter: 'any',
     selectedDate: '02.04.2026',
 
+    person: null,
+    personLoading: false,
+    personError: '',
+
     async init() {
       await this.loadData();
     },
@@ -41,6 +45,7 @@ function refundsTable() {
       }
     },
 
+    // Фильтры по статусу и типу возврата
     get filteredRows() {
       return this.rows.filter(row => {
         const rowStatus = String(row.status ?? '');
@@ -68,6 +73,7 @@ function refundsTable() {
       });
     },
 
+    // Подсчет данных
     get totalPages() {
       return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
     },
@@ -95,6 +101,7 @@ function refundsTable() {
       return Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
     },
 
+    // Пагинация
     goToFirstPage() {
       this.currentPage = 1;
     },
@@ -115,6 +122,7 @@ function refundsTable() {
       }
     },
 
+    // Форматирование в число
     toNumber(value) {
       if (value === null || value === undefined || value === '') return 0;
       if (typeof value === 'number') return value;
@@ -127,15 +135,45 @@ function refundsTable() {
       return Number.isNaN(parsed) ? 0 : parsed;
     },
 
+    // Формат чисел
     formatAmount(value) {
       return new Intl.NumberFormat('ru-RU', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(value || 0);
+    },
+
+    // Открытие модального окна с инфо о человеке
+    async openPersonModal(iin) {
+      this.person = null;
+      this.personError = '';
+      this.personLoading = true;
+
+      const modal = document.getElementById('my_modal_2');
+      if (modal) {
+        modal.showModal();
+      }
+
+      try {
+        const response = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        this.person = await response.json();
+      } catch (error) {
+        console.error('Ошибка загрузки данных физлица:', error);
+        this.person = null;
+        this.personError = 'Не удалось загрузить данные';
+      } finally {
+        this.personLoading = false;
+      }
     }
   };
 }
 
+// ФОРМИРОВАНИЕ ОТЧЕТА ПОД ТАБЛИЦЕЙ
 function orderReport() {
   return {
     rows: [],
