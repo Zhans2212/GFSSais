@@ -11,7 +11,13 @@ from app.utils.logger import log
 
 def check_login(request: Request):
     ip = request.client.host if request.client else ""
-    resp = sso_check(ip)
+
+    username = None
+    if ip == "127.0.0.1":
+        username = request.session.get('username', '')
+        log.info(f"LOGIN NAME → {username}")
+
+    resp = sso_check(ip, username)
 
     log.info(f"LOGIN CHECK → {resp}")
 

@@ -1,5 +1,7 @@
+
 import requests
 from app.config import settings
+from app.utils.logger import log
 
 
 def sso_login(username: str, password: str, ip_addr: str):
@@ -14,10 +16,15 @@ def sso_login(username: str, password: str, ip_addr: str):
     return resp
 
 
-def sso_check(ip_addr: str):
+def sso_check(ip_addr: str, username: str | None = None):
+    req_json = {"ip_addr": ip_addr}
+
+    if username:
+        req_json["login_name"] = username
+
     resp = requests.post(
         f"{settings.SSO_SERVER}/check",
-        json={"ip_addr": ip_addr}
+        json=req_json
     )
     return resp
 
