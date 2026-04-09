@@ -80,7 +80,7 @@
               >
                 <td x-text="refund.sior_id"></td>
                 <td x-text="refund.refer_in"></td>
-                <td x-text="refund.iin"></td>
+                <td x-text="refund.bin"></td>
                 <td x-text="refund.c1_doc_number"></td>
                 <td x-text="refund.c1_doc_date"></td>
                 <td x-text="refund.pay_sum"></td>
@@ -88,9 +88,9 @@
                 <td x-text="refund.status"></td>
                 <td x-text="refund.knp"></td>
                 <td x-text="refund.type_payer"></td>
-                <td x-text="refund.recv_date"></td>
                 <td x-text="refund.doc_date"></td>
-                <td x-text="refund.swift_date"></td>
+                <td x-text="refund.recv_date"></td>
+                <td x-text="refund.c1_doc_date"></td>
                 <td></td>
               </tr>
             </template>
@@ -246,21 +246,22 @@
                 <b x-text="reportDate || selectedDate"></b>
               </div>
 
-              <table class="table table-xs table-pin-rows">
-                <thead>
-                  <tr class="text-secondary-content bg-base-200">
+              <table class="table table-xs table-pin-rows w-xs border border-base-content/5
+                            [&_th]:border-r [&_td]:border-r [&_th]:border-base-content/10 [&_td]:border-base-content/10">
+                <thead class="text-secondary-content bg-base-200 [&_th]:text-center [&_th]:align-middle">
+                  <tr>
                     <th rowspan="3">ТТК</th>
                     <th colspan="2">Барлығы</th>
                     <th colspan="6">Соның ішінде</th>
                   </tr>
-                  <tr class="text-secondary-content bg-base-200">
+                  <tr>
                     <th rowspan="2">Адам саны</th>
                     <th rowspan="2">Сома (теңге)</th>
                     <th colspan="2">026 ТТК б-ша ӘА</th>
                     <th colspan="2">094 ТТК б-ша ӘА өсімпұлы</th>
                     <th colspan="2">БТ</th>
                   </tr>
-                  <tr class="text-secondary-content bg-base-200">
+                  <tr>
                     <th>Адам саны</th>
                     <th>Сома (теңге)</th>
                     <th>Адам саны</th>
@@ -309,8 +310,8 @@
     <div class="tab-content border-base-300 bg-base-100 p-10">Ошибочные заявки</div>
 
     <!-- THIRD TAB HERE -->
-    <input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 3" />
-    <div class="tab-content border-base-300 bg-base-100 p-10">Tab content 3</div>
+    <input type="radio" name="my_tabs_2" class="tab" aria-label="Карточка" />
+    <div class="tab-content border-base-300 bg-base-100 p-10">Карточка</div>
   </div>
 </div>
 

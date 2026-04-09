@@ -9,7 +9,7 @@ function refundsTable() {
     search: '',
     statusFilter: 'all',
     typeFilter: 'any',
-    selectedDate: '02.04.2026',
+    selectedDate: '08.04.2026',
 
     person: null,
     personLoading: false,
@@ -52,13 +52,15 @@ function refundsTable() {
         const knp = String(row.knp ?? '').padStart(3, '0');
 
         const searchValue = this.search.trim().toLowerCase();
+        const sior_id = String(row.sior_id ?? '').toLowerCase();
         const refer = String(row.refer_in ?? '').toLowerCase();
-        const iin = String(row.iin ?? '').toLowerCase();
+        const bin = String(row.bin ?? '').toLowerCase();
 
         const matchesSearch =
           !searchValue ||
+          sior_id.includes(searchValue) ||
           refer.includes(searchValue) ||
-          iin.includes(searchValue);
+          bin.includes(searchValue);
 
         const matchesStatus =
           this.statusFilter === 'all' ||
