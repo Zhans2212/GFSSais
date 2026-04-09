@@ -25,21 +25,26 @@ def get_refund_list(status: int, package_name: str = "DASORP_TEST") -> list[dict
     return refunds
 
 
-def get_person_by_iin(iin: str):
-    query = text("""
-        SELECT iin,
-               lastname,
-               firstname,
-               middlename,
-               birthdate,
-               address
-        FROM LOADER.person
-        WHERE iin = :iin
-    """)
+def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
+    query = text(
+        f"SELECT {package_name}.MANAGE.GET_ORDER_INFO(:sior_id) AS person_cursor FROM DUAL"
+    )
 
     with engine.connect() as conn:
-        result = conn.execute(query, {"iin": iin})
-        return result.fetchone()
+        result = conn.execute(query, {"sior_id": sior_id})
+        row = result.fetchone()
+
+        persons = []
+
+        if row and row[0]:
+            cursor = row[0]
+            try:
+                columns = [col[0].lower() for col in cursor.description]
+                persons = [dict(zip(columns, r)) for r in cursor.fetchall()]
+            finally:
+                cursor.close()
+
+    return persons
 
 
 def get_order_rows(report_date: str) -> list:

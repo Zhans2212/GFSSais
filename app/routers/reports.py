@@ -11,7 +11,7 @@ from typing import List
 from starlette.responses import StreamingResponse
 
 from app.core.security import login_required
-from app.db.get_tables import get_refund_list, get_person_by_iin, get_order_rows
+from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows
 from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_set_status
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
@@ -169,33 +169,34 @@ async def get_order_data(
         raise HTTPException(status_code=500, detail="Ошибка при формировании данных отчета")
 
 
-@router.get("/person/{iin}")
-async def get_person(iin: str):
-    masked_iin = mask_iin(iin)
-    log.info("GET /person requested for iin=%s", masked_iin)
+@router.get("/persons")
+async def get_person(
+    sior_id: int,
+    user=Depends(login_required)
+):
+    user_name = user.masked_name
+    log.info("GET /reports/data requested by user=%s, sior_id=%s", user_name, sior_id)
 
     try:
-        row = get_person_by_iin(iin)
+        persons = get_persons_by_sior(sior_id, package_name=PACKAGE_NAME)
+        log.info(
+            "Sending persons: count=%s, sample=%s",
+            len(persons),
+            persons[:2] if persons else "EMPTY"
+        )
+
+        return {
+            "rows": persons,
+            "sior_id": sior_id,
+            "count": len(persons),
+        }
     except Exception:
-        log.exception("Failed to get person by iin=%s", masked_iin)
-        raise HTTPException(status_code=500, detail="Ошибка при получении данных физического лица")
-
-    if not row:
-        log.warning("Person not found for iin=%s", masked_iin)
-        return None
-
-    birthdate = row[4].strftime("%d.%m.%Y") if row[4] else ""
-
-    log.info("Person found successfully for iin=%s", masked_iin)
-
-    return {
-        "iin": row[0],
-        "lastname": row[1],
-        "firstname": row[2],
-        "middlename": row[3],
-        "birthdate": birthdate,
-        "address": row[5]
-    }
+        log.exception(
+            "Failed to load refunds data for user=%s, sior_id=%s",
+            user_name,
+            sior_id
+        )
+        raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
 
 @router.post("/accept_all")

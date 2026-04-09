@@ -12,9 +12,10 @@ function refundsTable() {
     selectedStatus: 3,
     selectedDate: '02.04.2026',
 
-    person: null,
     personLoading: false,
     personError: '',
+    personsRows: [],
+    siorID: '',
 
     async init() {
       await this.loadData();
@@ -43,6 +44,33 @@ function refundsTable() {
         this.error = 'Не удалось загрузить данные';
       } finally {
         this.loading = false;
+      }
+    },
+
+    // НАЙТИ ЛЮДЕЙ ПО НОМЕРУ ЗАЯВКИ
+    async loadPersons(sior_id) {
+      this.personLoading = true;
+      this.personError = '';
+      this.siorID = sior_id;
+
+      try {
+        const response = await fetch(`/reports/persons?sior_id=${encodeURIComponent(this.siorID)}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log('PERSONS_DATA:', data);
+
+        this.personsRows = Array.isArray(data.rows) ? data.rows : [];
+      } catch (error) {
+        console.error('Ошибка загрузки людей:', error);
+        this.personsRows = [];
+        this.personError = 'Не удалось загрузить данные по людям';
+      } finally {
+        this.personLoading = false;
       }
     },
 
@@ -145,34 +173,6 @@ function refundsTable() {
         maximumFractionDigits: 2
       }).format(value || 0);
     },
-
-    // Открытие модального окна с инфо о человеке
-    // async openPersonModal(iin) {
-    //   this.person = null;
-    //   this.personError = '';
-    //   this.personLoading = true;
-    //
-    //   const modal = document.getElementById('my_modal_2');
-    //   if (modal) {
-    //     modal.showModal();
-    //   }
-    //
-    //   try {
-    //     const response = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
-    //
-    //     if (!response.ok) {
-    //       throw new Error(`HTTP ${response.status}`);
-    //     }
-    //
-    //     this.person = await response.json();
-    //   } catch (error) {
-    //     console.error('Ошибка загрузки данных физлица:', error);
-    //     this.person = null;
-    //     this.personError = 'Не удалось загрузить данные';
-    //   } finally {
-    //     this.personLoading = false;
-    //   }
-    // }
   };
 }
 
@@ -242,3 +242,32 @@ function orderReport() {
     }
   };
 }
+
+
+    // Открытие модального окна с инфо о человеке
+    // async openPersonModal(iin) {
+    //   this.person = null;
+    //   this.personError = '';
+    //   this.personLoading = true;
+    //
+    //   const modal = document.getElementById('my_modal_2');
+    //   if (modal) {
+    //     modal.showModal();
+    //   }
+    //
+    //   try {
+    //     const response = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
+    //
+    //     if (!response.ok) {
+    //       throw new Error(`HTTP ${response.status}`);
+    //     }
+    //
+    //     this.person = await response.json();
+    //   } catch (error) {
+    //     console.error('Ошибка загрузки данных физлица:', error);
+    //     this.person = null;
+    //     this.personError = 'Не удалось загрузить данные';
+    //   } finally {
+    //     this.personLoading = false;
+    //   }
+    // }
