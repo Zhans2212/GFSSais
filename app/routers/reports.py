@@ -38,14 +38,14 @@ async def home(request: Request, user=Depends(login_required)):
 
 @router.get("/data")
 async def get_reports_data(
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    status: int = Query(default=2),
     user=Depends(login_required)
 ):
     user_name = user.masked_name
-    log.info("GET /reports/data requested by user=%s, date=%s", user_name, date)
+    log.info("GET /reports/data requested by user=%s, status=%s", user_name, status)
 
     try:
-        refunds = get_refund_list(date, package_name=PACKAGE_NAME)
+        refunds = get_refund_list(status, package_name=PACKAGE_NAME)
         # refunds = json.loads(json.dumps(refunds, default=float))
 
         log.info(
@@ -56,14 +56,14 @@ async def get_reports_data(
 
         return {
             "rows": refunds,
-            "date": date,
+            "status": status,
             "count": len(refunds),
         }
     except Exception:
         log.exception(
-            "Failed to load refunds data for user=%s, date=%s",
+            "Failed to load refunds data for user=%s, status=%s",
             user_name,
-            date
+            status
         )
         raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 

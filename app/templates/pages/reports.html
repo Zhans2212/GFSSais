@@ -13,13 +13,12 @@
         <div class="grid grid-rows-2 gap-4 ml-2">
           <label class="select outline-none text-secondary-content">
             <span class="label">Статус</span>
-            <select x-model="statusFilter" @change="currentPage = 1">
-              <option value="all">Все записи</option>
-              <option value="1">1 - Документ принят</option>
-              <option value="2">2 - Документ одобрен</option>
-              <option value="3">3 - Документ передан в 1С</option>
-              <option value="5">5 - Отказ в возврате</option>
-              <option value="100">100 - Отклонен оператором</option>
+            <select x-model="statusFilter" @change="currentPage = 1; loadData()">
+              <option value=1>1 - Документ принят</option>
+              <option value=2>2 - Документ одобрен</option>
+              <option value=3>3 - Документ передан в 1С</option>
+              <option value=5>5 - Отказ в возврате</option>
+              <option value=100>100 - Отклонен оператором</option>
             </select>
           </label>
 
@@ -76,19 +75,18 @@
                 class="cursor-pointer"
                 :data-sior-id="refund.sior_id"
                 :data-status="refund.status"
-                @click="openPersonModal(refund.iin)"
               >
                 <td x-text="refund.sior_id"></td>
                 <td x-text="refund.refer_in"></td>
                 <td x-text="refund.bin"></td>
-                <td x-text="refund.c1_doc_number"></td>
-                <td x-text="refund.c1_doc_date"></td>
+                <td x-text="refund.doc_nmb"></td>
+                <td x-text="refund.doc_date"></td>
                 <td x-text="refund.pay_sum"></td>
-                <td x-text="refund.sum_gfss"></td>
+                <td x-text="refund.ret_sum"></td>
                 <td x-text="refund.status"></td>
                 <td x-text="refund.knp"></td>
                 <td x-text="refund.type_payer"></td>
-                <td x-text="refund.doc_date"></td>
+                <td x-text="refund.ret_date"></td>
                 <td x-text="refund.recv_date"></td>
                 <td x-text="refund.c1_doc_date"></td>
                 <td></td>
@@ -104,40 +102,40 @@
         </table>
 
         <!-- Open the Person Modal -->
-        <dialog id="my_modal_2" class="modal">
-          <div class="modal-box">
-            <h3 class="text-lg font-bold mb-4">Информация о плательщике</h3>
+<!--        <dialog id="my_modal_2" class="modal">-->
+<!--          <div class="modal-box">-->
+<!--            <h3 class="text-lg font-bold mb-4">Информация о плательщике</h3>-->
 
-            <template x-if="personLoading">
-              <div class="flex justify-center py-6">
-                <span class="loading loading-spinner loading-lg"></span>
-              </div>
-            </template>
+<!--            <template x-if="personLoading">-->
+<!--              <div class="flex justify-center py-6">-->
+<!--                <span class="loading loading-spinner loading-lg"></span>-->
+<!--              </div>-->
+<!--            </template>-->
 
-            <template x-if="personError && !personLoading">
-              <p class="text-error py-2" x-text="personError"></p>
-            </template>
+<!--            <template x-if="personError && !personLoading">-->
+<!--              <p class="text-error py-2" x-text="personError"></p>-->
+<!--            </template>-->
 
-            <template x-if="person && !personLoading && !personError">
-              <div class="space-y-2 text-sm">
-                <div><b>ИИН:</b> <span x-text="person.iin || '-'"></span></div>
-                <div><b>Фамилия:</b> <span x-text="person.lastname || '-'"></span></div>
-                <div><b>Имя:</b> <span x-text="person.firstname || '-'"></span></div>
-                <div><b>Отчество:</b> <span x-text="person.middlename || '-'"></span></div>
-                <div><b>Дата рождения:</b> <span x-text="person.birthdate || '-'"></span></div>
-                <div><b>Адрес:</b> <span x-text="person.address || '-'"></span></div>
-              </div>
-            </template>
+<!--            <template x-if="person && !personLoading && !personError">-->
+<!--              <div class="space-y-2 text-sm">-->
+<!--                <div><b>ИИН:</b> <span x-text="person.iin || '-'"></span></div>-->
+<!--                <div><b>Фамилия:</b> <span x-text="person.lastname || '-'"></span></div>-->
+<!--                <div><b>Имя:</b> <span x-text="person.firstname || '-'"></span></div>-->
+<!--                <div><b>Отчество:</b> <span x-text="person.middlename || '-'"></span></div>-->
+<!--                <div><b>Дата рождения:</b> <span x-text="person.birthdate || '-'"></span></div>-->
+<!--                <div><b>Адрес:</b> <span x-text="person.address || '-'"></span></div>-->
+<!--              </div>-->
+<!--            </template>-->
 
-            <template x-if="!person && !personLoading && !personError">
-              <p class="py-2 opacity-70">Данные не найдены</p>
-            </template>
-          </div>
+<!--            <template x-if="!person && !personLoading && !personError">-->
+<!--              <p class="py-2 opacity-70">Данные не найдены</p>-->
+<!--            </template>-->
+<!--          </div>-->
 
-          <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
+<!--          <form method="dialog" class="modal-backdrop">-->
+<!--            <button>close</button>-->
+<!--          </form>-->
+<!--        </dialog>-->
       </div>
 
       <div class="mt-3 text-sm opacity-80">

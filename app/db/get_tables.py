@@ -3,13 +3,13 @@ from sqlalchemy import text
 from app.db.engine import engine
 
 
-def get_refund_list(reports_date: str, package_name: str = "DASORP_TEST") -> list[dict]:
+def get_refund_list(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
     query = text(
-        f"SELECT {package_name}.MANAGE.GET_REFUND_LIST(:date) AS refund_cursor FROM DUAL"
+        f"SELECT {package_name}.MANAGE.GET_BY_STATUS(:status) AS refund_cursor FROM DUAL"
     )
 
     with engine.connect() as conn:
-        result = conn.execute(query, {"date": reports_date})
+        result = conn.execute(query, {"status": status})
         row = result.fetchone()
 
         refunds = []

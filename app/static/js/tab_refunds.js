@@ -7,9 +7,10 @@ function refundsTable() {
     pageSize: 15,
 
     search: '',
-    statusFilter: 'all',
+    statusFilter: '1',
     typeFilter: 'any',
-    selectedDate: '08.04.2026',
+    selectedStatus: 3,
+    selectedDate: '02.04.2026',
 
     person: null,
     personLoading: false,
@@ -24,17 +25,17 @@ function refundsTable() {
       this.error = '';
 
       try {
-        const response = await fetch(`/reports/data?date=${encodeURIComponent(this.selectedDate)}`);
-        console.log('FETCH STATUS:', response.status);
+        const response = await fetch(`/reports/data?status=${encodeURIComponent(this.statusFilter)}`);
 
-        const text = await response.text();
-        const data = JSON.parse(text);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
 
         console.log('DATA:', data);
 
         this.rows = Array.isArray(data.rows) ? data.rows : [];
-        console.log('ROWS LOADED:', this.rows.length);
-
         this.currentPage = 1;
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -91,7 +92,7 @@ function refundsTable() {
     },
 
     get totalRefundSum() {
-      return this.filteredRows.reduce((sum, row) => sum + this.toNumber(row.sum_gfss), 0);
+      return this.filteredRows.reduce((sum, row) => sum + this.toNumber(row.ret_sum), 0);
     },
 
     get startRow() {
@@ -146,32 +147,32 @@ function refundsTable() {
     },
 
     // Открытие модального окна с инфо о человеке
-    async openPersonModal(iin) {
-      this.person = null;
-      this.personError = '';
-      this.personLoading = true;
-
-      const modal = document.getElementById('my_modal_2');
-      if (modal) {
-        modal.showModal();
-      }
-
-      try {
-        const response = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        this.person = await response.json();
-      } catch (error) {
-        console.error('Ошибка загрузки данных физлица:', error);
-        this.person = null;
-        this.personError = 'Не удалось загрузить данные';
-      } finally {
-        this.personLoading = false;
-      }
-    }
+    // async openPersonModal(iin) {
+    //   this.person = null;
+    //   this.personError = '';
+    //   this.personLoading = true;
+    //
+    //   const modal = document.getElementById('my_modal_2');
+    //   if (modal) {
+    //     modal.showModal();
+    //   }
+    //
+    //   try {
+    //     const response = await fetch(`/reports/person/${encodeURIComponent(iin)}`);
+    //
+    //     if (!response.ok) {
+    //       throw new Error(`HTTP ${response.status}`);
+    //     }
+    //
+    //     this.person = await response.json();
+    //   } catch (error) {
+    //     console.error('Ошибка загрузки данных физлица:', error);
+    //     this.person = null;
+    //     this.personError = 'Не удалось загрузить данные';
+    //   } finally {
+    //     this.personLoading = false;
+    //   }
+    // }
   };
 }
 
@@ -183,7 +184,7 @@ function orderReport() {
     loading: false,
     error: '',
     reportDate: '',
-    selectedDate: '',
+    selectedStatus: '',
 
     init() {
       this.selectedDate = '02.04.2026';
@@ -213,7 +214,7 @@ function orderReport() {
 
         this.rows = Array.isArray(data.rows) ? data.rows : [];
         this.total = data.total || {};
-        this.reportDate = data.date || this.selectedDate;
+        this.reportDate = data.date || this.selectedStatus;
       } catch (error) {
         console.error('Ошибка загрузки отчета:', error);
         this.rows = [];
@@ -225,11 +226,11 @@ function orderReport() {
     },
 
     downloadExcel() {
-      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(this.selectedDate)}`;
+      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(this.selectedStatus)}`;
     },
 
     downloadPdf() {
-      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(this.selectedDate)}`;
+      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(this.selectedStatus)}`;
     },
 
     formatAmount(value) {
