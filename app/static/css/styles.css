@@ -2085,6 +2085,30 @@
   .h-7 {
     height: calc(var(--spacing) * 7);
   }
+  .h-36 {
+    height: calc(var(--spacing) * 36);
+  }
+  .h-92 {
+    height: calc(var(--spacing) * 92);
+  }
+  .h-101 {
+    height: calc(var(--spacing) * 101);
+  }
+  .h-102 {
+    height: calc(var(--spacing) * 102);
+  }
+  .h-103 {
+    height: calc(var(--spacing) * 103);
+  }
+  .h-104 {
+    height: calc(var(--spacing) * 104);
+  }
+  .h-108 {
+    height: calc(var(--spacing) * 108);
+  }
+  .h-112 {
+    height: calc(var(--spacing) * 112);
+  }
   .h-\[1em\] {
     height: 1em;
   }

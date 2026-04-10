@@ -10,12 +10,17 @@ function refundsTable() {
     statusFilter: '1',
     typeFilter: 'any',
     selectedStatus: 3,
-    selectedDate: '02.04.2026',
 
     personLoading: false,
     personError: '',
     personsRows: [],
     siorID: '',
+
+    reportLoading: false,
+    reportError: '',
+    reportRows: [],
+    reportDate: '',
+    total: {},
 
     async init() {
       await this.loadData();
@@ -74,6 +79,62 @@ function refundsTable() {
       }
     },
 
+    // ФОРМИРОВАНИЕ ОТЧЕТА ПОД ТАБЛИЦЕЙ
+    async loadReport(date) {
+      this.reportLoading = true;
+      this.reportError = '';
+      this.reportDate = date;
+
+      try {
+        const response = await fetch(`/reports/order-data?date=${encodeURIComponent(this.reportDate)}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('REPORT DATA:', data);
+
+        this.reportRows = Array.isArray(data.rows) ? data.rows : [];
+        this.total = data.total || {};
+      } catch (error) {
+        console.error('Ошибка загрузки отчета:', error);
+        this.reportRows = [];
+        this.total = {};
+        this.reportError = 'Не удалось загрузить данные отчета';
+      } finally {
+        this.reportLoading = false;
+      }
+    },
+
+    getToday() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      return `${day}.${month}.${year}`;
+    },
+
+    // Получить дату из таблицы возвратов для формирования отчета
+    getReportDateFromRefunds() {
+      const sourceRow = this.filteredRows?.[0] || this.rows?.[0];
+      if (!sourceRow || !sourceRow.recv_date) return '';
+
+      return this.formatRefundDate(sourceRow.recv_date);
+    },
+
+    formatRefundDate(value) {
+      if (!value) return '';
+
+      // ожидаемый формат: 09-04-2026 04:36:17
+      const datePart = String(value).split(' ')[0]; // 09-04-2026
+      const [day, month, year] = datePart.split('-');
+
+      if (!day || !month || !year) return '';
+
+      return `${day}.${month}.${year}`; // 09.04.2026
+    },
+
     // Фильтры по статусу и типу возврата
     get filteredRows() {
       return this.rows.filter(row => {
@@ -84,6 +145,7 @@ function refundsTable() {
         const sior_id = String(row.sior_id ?? '').toLowerCase();
         const refer = String(row.refer_in ?? '').toLowerCase();
         const bin = String(row.bin ?? '').toLowerCase();
+        const type_payer = String(row.type_payer ?? '').toLowerCase();
 
         const matchesSearch =
           !searchValue ||
@@ -98,7 +160,8 @@ function refundsTable() {
         const matchesType =
           this.typeFilter === 'any' ||
           (this.typeFilter === 'СО' && knp === '026') ||
-          (this.typeFilter === 'ЕП' && knp === '094');
+          (this.typeFilter === 'ЕП' && knp === '094') ||
+          (this.typeFilter === 'СЗ' && type_payer === 'СЗ');
 
         return matchesSearch && matchesStatus && matchesType;
       });
@@ -173,73 +236,15 @@ function refundsTable() {
         maximumFractionDigits: 2
       }).format(value || 0);
     },
-  };
-}
-
-// ФОРМИРОВАНИЕ ОТЧЕТА ПОД ТАБЛИЦЕЙ
-function orderReport() {
-  return {
-    rows: [],
-    total: {},
-    loading: false,
-    error: '',
-    reportDate: '',
-    selectedStatus: '',
-
-    init() {
-      this.selectedDate = '02.04.2026';
-      this.loadReport();
-    },
-
-    getToday() {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      return `${day}.${month}.${year}`;
-    },
-
-    async loadReport() {
-      this.loading = true;
-      this.error = '';
-
-      try {
-        const response = await fetch(`/reports/order-data?date=${encodeURIComponent(this.selectedDate)}`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        this.rows = Array.isArray(data.rows) ? data.rows : [];
-        this.total = data.total || {};
-        this.reportDate = data.date || this.selectedStatus;
-      } catch (error) {
-        console.error('Ошибка загрузки отчета:', error);
-        this.rows = [];
-        this.total = {};
-        this.error = 'Не удалось загрузить данные отчета';
-      } finally {
-        this.loading = false;
-      }
-    },
 
     downloadExcel() {
-      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(this.selectedStatus)}`;
+      const date = this.reportDate || this.getReportDateFromRefunds();
+      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(date)}`;
     },
 
     downloadPdf() {
-      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(this.selectedStatus)}`;
+      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(date)}`;
     },
-
-    formatAmount(value) {
-      const num = Number(value || 0);
-      return new Intl.NumberFormat('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(num);
-    }
   };
 }
 

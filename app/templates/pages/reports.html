@@ -28,6 +28,7 @@
               <option value="any">Любой тип</option>
               <option value="СО">СО</option>
               <option value="ЕП">ЕП</option>
+              <option value="СЗ">СЗ</option>
             </select>
           </label>
         </div>
@@ -43,7 +44,7 @@
               <path d="m21 21-4.3-4.3"></path>
             </g>
           </svg>
-          <input type="search" class="grow" placeholder="Поиск (референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1"/>
+          <input type="search" class="grow" placeholder="Поиск (№/референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1"/>
         </label>
       </div>
 
@@ -66,7 +67,7 @@
       </div>
 
       <!-- ТАБЛИЦА ВОЗВРАТЫ СО -->
-      <div class="overflow-x-auto h-auto bg-base-200 rounded-box shadow">
+      <div class="overflow-x-auto h-103 bg-base-200 rounded-box shadow">
         <table class="table table-xs table-pin-rows">
           <thead>
             <tr class="text-secondary-content bg-base-200">
@@ -91,8 +92,6 @@
             <template x-for="refund in paginatedRows">
               <tr
                 class="cursor-pointer"
-                :data-sior-id="refund.sior_id"
-                :data-status="refund.status"
                 @click="loadPersons(refund.sior_id)"
               >
                 <td x-text="refund.sior_id"></td>
@@ -214,15 +213,10 @@
 
 
       <!-- Формирование отчета -->
-      <div class="mt-10" x-data="orderReport()" x-init="init()">
+      <div class="mt-10">
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
           <div class="flex flex-wrap items-end gap-3">
-            <label class="input outline-none text-secondary-content">
-              <span class="label">Дата</span>
-              <input type="text" x-model="selectedDate" placeholder="дд.мм.гггг">
-            </label>
-
-            <button class="btn btn-primary" type="button" @click="loadReport()" :disabled="loading">
+            <button class="btn btn-primary" type="button" @click="loadReport(getReportDateFromRefunds())" :disabled="reportLoading">
               Показать
             </button>
           </div>
@@ -244,21 +238,21 @@
         </div>
 
         <div class="overflow-x-auto p-5 bg-base-200 rounded-box shadow min-h-[260px]">
-          <template x-if="loading">
+          <template x-if="reportLoading">
             <div class="flex justify-center py-10">
               <span class="loading loading-spinner loading-lg"></span>
             </div>
           </template>
 
-          <template x-if="error">
-            <p class="text-error" x-text="error"></p>
+          <template x-if="reportError">
+            <p class="text-center py-4 opacity-70" x-text="reportError">Нет данных</p>
           </template>
 
-          <template x-if="!loading && !error">
+          <template x-if="!reportLoading && !reportError">
             <div>
               <div class="mb-3 text-sm opacity-80">
                 Дата отчета:
-                <b x-text="reportDate || selectedDate"></b>
+                <b x-text="getToday()"></b>
               </div>
 
               <table class="table table-xs table-pin-rows w-xs border border-base-content/5
@@ -287,7 +281,7 @@
                 </thead>
 
                 <tbody class="text-base-content">
-                  <template x-for="row in rows" :key="row.ttk">
+                  <template x-for="row in reportRows" :key="row.ttk">
                     <tr>
                       <td x-text="row.ttk"></td>
                       <td x-text="row.total_count"></td>
