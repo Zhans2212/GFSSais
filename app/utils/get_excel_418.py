@@ -11,7 +11,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 
-def rows_to_pdf(rows=None, date=None, fio=None):
+def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     buffer = BytesIO()
 
     font_regular = Path("app/static/fonts/times.ttf")
@@ -174,7 +174,7 @@ def rows_to_pdf(rows=None, date=None, fio=None):
 
     elements.append(
         Paragraph(
-            '«МӘСҚ» АҚ Басқарма Төрағасының орынбасары __________________________',
+            f'«МӘСҚ» АҚ Басқарма Төрағасының орынбасары: __________________ {approved_by.get("fio")}',
             title_style
         )
     )
@@ -188,7 +188,7 @@ def rows_to_pdf(rows=None, date=None, fio=None):
     return buffer
 
 
-def rows_to_excel(rows=None, date=None, fio=None):
+def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Report"
@@ -334,7 +334,7 @@ def rows_to_excel(rows=None, date=None, fio=None):
     ])
 
     ws.merge_cells(f"{cell('A',10)}:{cell('I',10)}")
-    ws[cell("A",10)] = '«МӘСҚ» АҚ Басқарма Төрағасының орынбасары__________________________________________'
+    ws[cell("A",10)] = f'«МӘСҚ» АҚ Басқарма Төрағасының орынбасары: __________________ {approved_by.get("fio")}'
     ws[cell("A",10)].alignment = center
     ws[cell("A",10)].font = Font(bold=True, size=14)
 

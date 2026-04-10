@@ -11,7 +11,7 @@ from typing import List
 from starlette.responses import StreamingResponse
 
 from app.core.security import login_required
-from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows
+from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows, get_who_approved
 from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
@@ -87,6 +87,8 @@ async def get_order_data(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     try:
+        person = get_who_approved(PACKAGE_NAME)
+        log.info("PERSON WHO APPROVED = %s", person.get("fio"))
         rows = get_order_rows(date, PACKAGE_NAME)
 
         data = {
@@ -264,6 +266,7 @@ async def get_report_excel(
     log.info("Excel generation started by user=%s, date=%s", user_name, date)
 
     try:
+        approved_by = get_who_approved(PACKAGE_NAME)
         rows = get_order_rows(date, PACKAGE_NAME)
 
         log.info(
@@ -273,7 +276,7 @@ async def get_report_excel(
             len(rows)
         )
 
-        excel_file = rows_to_excel(rows, TODAY, user.fio)
+        excel_file = rows_to_excel(rows, TODAY, user.fio, approved_by)
 
         log.info(
             "Excel file created successfully for user=%s, date=%s, rows_count=%s",
@@ -308,8 +311,9 @@ async def get_report_pdf(
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    approved_by = get_who_approved(PACKAGE_NAME)
     rows = get_order_rows(date, PACKAGE_NAME)
-    pdf_file = rows_to_pdf(rows, TODAY, user.fio)
+    pdf_file = rows_to_pdf(rows, TODAY, user.fio, approved_by)
 
     safe_date = date.replace(".", "_")
 

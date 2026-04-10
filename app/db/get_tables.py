@@ -62,3 +62,25 @@ def get_order_rows(report_date: str, package_name: str = "DASORP_TEST") -> list:
             return cursor.fetchall()
         finally:
             cursor.close()
+
+
+def get_who_approved(package_name: str = "DASORP_TEST"):
+    conn = engine.raw_connection()
+    cursor = conn.cursor()
+
+    try:
+        post = cursor.var(str)
+        fio = cursor.var(str)
+
+        cursor.callproc(
+            f"{package_name}.MANAGE.GET_PASSPORT",
+            [post, fio]
+        )
+
+        return {
+            "post": post.getvalue(),
+            "fio": fio.getvalue()
+        }
+    finally:
+        cursor.close()
+        conn.close()
