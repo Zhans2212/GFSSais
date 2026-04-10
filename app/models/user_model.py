@@ -1,5 +1,5 @@
 from fastapi import Request
-from app.utils.roles import first_level, second_level, third_level
+from app.utils.roles import manager_posts
 from app.utils.logger import log
 
 
@@ -117,20 +117,17 @@ class USER:
         session["ip_addr"] = self.ip_addr
 
     def _assign_roles(self):
-        """Логика определения ролей"""
-        if self.post in first_level:
-            self.roles = "first_level"
-            self.top_control = 0
-
-        elif self.post in second_level:
-            self.roles = "second_level"
+        """
+        top_control:
+        - 1 -> управляющий директор
+        - 0 -> остальные
+        """
+        if self.post in manager_posts:
+            self.roles = "manager"
             self.top_control = 1
-        elif self.post in third_level:
-            self.roles = "third_level"
-            self.top_control = 3
         else:
-            self.roles = "guest"
-            self.top_control = 4
+            self.roles = "user"
+            self.top_control = 0
 
     def is_authenticated(self):
         log.info(f'Check is_authenticated {self.username}')

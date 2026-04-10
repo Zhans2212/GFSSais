@@ -120,7 +120,8 @@ function refundsTable() {
       const sourceRow = this.filteredRows?.[0] || this.rows?.[0];
       if (!sourceRow || !sourceRow.recv_date) return '';
 
-      return this.formatRefundDate(sourceRow.recv_date);
+      if (this.selectedStatus === 2) return this.formatRefundDate(sourceRow.recv_date);
+      return '';
     },
 
     formatRefundDate(value) {

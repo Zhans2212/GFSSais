@@ -13,7 +13,7 @@ from starlette.responses import StreamingResponse
 from app.core.security import login_required
 from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows
 from app.config import templates, PACKAGE_NAME
-from app.db.update_tables import bulk_set_status
+from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
 from app.utils.masker import mask_iin, mask_ids
@@ -71,10 +71,15 @@ async def get_reports_data(
 
 @router.get("/order-data")
 async def get_order_data(
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    date: str,
     user=Depends(login_required)
 ):
     user_name = user.masked_name
+
+    if date == '':
+        log.warning("Empty date to GET /order-data by user=%s", user_name)
+        raise HTTPException(status_code=400, detail="Bad request")
+
     log.info("GET /reports/order-data requested by user=%s, date=%s", user_name, date)
 
     if not user:
@@ -202,7 +207,7 @@ async def get_person(
 
 
 @router.post("/accept_all")
-async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(login_required)):
+async def accept_all(request: Request, user=Depends(login_required)):
     user_name = user.masked_name
 
     log.info("POST /accept_all requested by user=%s", user_name)
@@ -213,7 +218,7 @@ async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(l
 
     user_top_control = user.top_control
 
-    if user_top_control == "4":
+    if user_top_control != "1":
         log.warning(
             "Forbidden bulk accept attempt by user=%s, top_control=%s",
             user_name,
@@ -221,51 +226,22 @@ async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(l
         )
         raise HTTPException(status_code=403, detail="Forbidden to accept all")
 
-    sior_ids = [int(x) for x in payload.sior_ids if x]
-    if not sior_ids:
-        log.info("Empty sior_ids received in POST /accept_all by user=%s", user_name)
-        return {"ok": True, "requested": 0, "called": 0}
-
     try:
-        status_to = int(user_top_control) + 1
-    except (TypeError, ValueError):
-        log.warning(
-            "Invalid top_control for bulk accept, user=%s, top_control=%s",
-            user_name,
-            user_top_control
-        )
-        raise HTTPException(status_code=400, detail="Некорректный уровень согласования")
-
-    log.info(
-        "Bulk status update started by user=%s, status_to=%s, sior_ids=%s",
-        user_name,
-        status_to,
-        mask_ids(sior_ids)
-    )
-
-    try:
-        bulk_set_status(sior_ids, status_to, package_name=PACKAGE_NAME)
+        bulk_accept_all(package_name=PACKAGE_NAME)
 
         log.info(
-            "Bulk status update completed successfully by user=%s, status_to=%s, count=%s",
-            user_name,
-            status_to,
-            len(sior_ids)
+            "Bulk status update completed successfully by user=%s",
+            user_name
         )
 
         return {
-            "ok": True,
-            "requested": len(sior_ids),
-            "called": len(sior_ids),
-            "status_to": status_to
+            "ok": True
         }
 
     except Exception:
         log.exception(
-            "Bulk status update failed by user=%s, status_to=%s, sior_ids=%s",
-            user_name,
-            status_to,
-            mask_ids(sior_ids)
+            "Bulk status update failed by user=%s",
+            user_name
         )
         raise HTTPException(status_code=500, detail="Ошибка при массовом согласовании")
 
@@ -273,7 +249,7 @@ async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(l
 @router.get("/get_report_excel")
 async def get_report_excel(
     request: Request,
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
+    date: str,
     user=Depends(login_required)
 ):
 

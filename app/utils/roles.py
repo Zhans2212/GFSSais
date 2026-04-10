@@ -1,3 +1,1 @@
-first_level = ["Ведущий разработчик"]
-second_level = ["*"]
-third_level = ["*"]
+manager_posts = ["Ведущий разработчик"]
