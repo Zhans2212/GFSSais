@@ -9,7 +9,6 @@ function refundsTable() {
     search: '',
     statusFilter: '1',
     typeFilter: 'any',
-    selectedStatus: 3,
 
     personLoading: false,
     personError: '',
@@ -107,6 +106,22 @@ function refundsTable() {
       }
     },
 
+    async acceptAll() {
+      this.loading = true;
+
+      try {
+        const response = await fetch(`/reports/accept_all`, {method: 'POST'});
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Ошибка утверждения с 1 по 2 статус:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
     getToday() {
       const now = new Date();
       const day = String(now.getDate()).padStart(2, '0');
@@ -120,7 +135,7 @@ function refundsTable() {
       const sourceRow = this.filteredRows?.[0] || this.rows?.[0];
       if (!sourceRow || !sourceRow.recv_date) return '';
 
-      if (this.selectedStatus === 2) return this.formatRefundDate(sourceRow.recv_date);
+      if (this.statusFilter === '2') return this.formatRefundDate(sourceRow.recv_date);
       return '';
     },
 

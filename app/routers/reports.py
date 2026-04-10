@@ -87,7 +87,7 @@ async def get_order_data(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     try:
-        rows = get_order_rows(date)
+        rows = get_order_rows(date, PACKAGE_NAME)
 
         data = {
             "026": {
@@ -218,7 +218,7 @@ async def accept_all(request: Request, user=Depends(login_required)):
 
     user_top_control = user.top_control
 
-    if user_top_control != "1":
+    if user_top_control != 1:
         log.warning(
             "Forbidden bulk accept attempt by user=%s, top_control=%s",
             user_name,
@@ -227,7 +227,7 @@ async def accept_all(request: Request, user=Depends(login_required)):
         raise HTTPException(status_code=403, detail="Forbidden to accept all")
 
     try:
-        bulk_accept_all(package_name=PACKAGE_NAME)
+        bulk_accept_all(user.post, user.masked_name, package_name=PACKAGE_NAME)
 
         log.info(
             "Bulk status update completed successfully by user=%s",
@@ -264,7 +264,7 @@ async def get_report_excel(
     log.info("Excel generation started by user=%s, date=%s", user_name, date)
 
     try:
-        rows = get_order_rows(date)
+        rows = get_order_rows(date, PACKAGE_NAME)
 
         log.info(
             "Excel source data loaded successfully for user=%s, date=%s, rows_count=%s",
@@ -308,7 +308,7 @@ async def get_report_pdf(
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    rows = get_order_rows(date)
+    rows = get_order_rows(date, PACKAGE_NAME)
     pdf_file = rows_to_pdf(rows, TODAY, user.fio)
 
     safe_date = date.replace(".", "_")
