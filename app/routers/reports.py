@@ -24,6 +24,8 @@ router = APIRouter()
 class AcceptAllRequest(BaseModel):
     sior_ids: List[int]
 
+TODAY = datetime.today().strftime("%d.%m.%Y")
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, user=Depends(login_required)):
     log.info("GET /reports requested by user=%s", user.masked_name)
@@ -268,26 +270,6 @@ async def accept_all(payload: AcceptAllRequest, request: Request, user=Depends(l
         raise HTTPException(status_code=500, detail="Ошибка при массовом согласовании")
 
 
-@router.get("/report418")
-async def get_report418(request: Request, user=Depends(login_required)):
-    user_name = user.masked_name
-
-    log.info("GET /report418 requested")
-
-    if not user:
-        log.warning("Unauthorized access to GET /report418, redirecting to /login")
-        return RedirectResponse("/login", status_code=303)
-
-    log.info("User %s opened report418 page", user_name)
-
-    return no_cache(
-        templates.TemplateResponse(
-            "pages/report418.html",
-            {"request": request, "user": user}
-        )
-    )
-
-
 @router.get("/get_report_excel")
 async def get_report_excel(
     request: Request,
@@ -315,7 +297,7 @@ async def get_report_excel(
             len(rows)
         )
 
-        excel_file = rows_to_excel(rows, date, user.fio)
+        excel_file = rows_to_excel(rows, TODAY, user.fio)
 
         log.info(
             "Excel file created successfully for user=%s, date=%s, rows_count=%s",
@@ -351,7 +333,7 @@ async def get_report_pdf(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     rows = get_order_rows(date)
-    pdf_file = rows_to_pdf(rows, date, user.fio)
+    pdf_file = rows_to_pdf(rows, TODAY, user.fio)
 
     safe_date = date.replace(".", "_")
 

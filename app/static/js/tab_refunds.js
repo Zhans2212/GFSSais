@@ -243,6 +243,7 @@ function refundsTable() {
     },
 
     downloadPdf() {
+      const date = this.reportDate || this.getReportDateFromRefunds();
       window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(date)}`;
     },
   };

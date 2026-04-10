@@ -69,13 +69,9 @@ def rows_to_pdf(rows=None, date=None, fio=None):
         alignment=TA_CENTER,
     )
 
-    elements = []
+    elements = [Paragraph(date or "", italic_style), Spacer(1, 62), Paragraph("Тапсырыс", title_style), Spacer(1, 12)]
 
     # --- HEADER ---
-    elements.append(Paragraph(date or "", italic_style))
-    elements.append(Spacer(1, 62))
-    elements.append(Paragraph("Тапсырыс", title_style))
-    elements.append(Spacer(1, 12))
 
     header_text = (
         "«Мемлекеттік әлеуметтік сақтандыру қоры» акционерлік қоғамының "

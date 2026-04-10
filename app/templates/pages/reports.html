@@ -8,6 +8,20 @@
     <!-- FIRST TAB HERE -->
     <input type="radio" name="my_tabs_2" class="tab" aria-label="Возвраты СО" checked="checked"/>
     <div class="tab-content border-base-300 bg-base-100 p-6 rounded-box" x-data="refundsTable()" x-init="init()">
+      <!-- Загрузка данных -->
+      <div
+        x-cloak
+        x-show="loading"
+        x-transition.opacity
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-base-100/80 backdrop-blur-sm"
+      >
+        <div class="flex flex-col items-center gap-4">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <p class="text-sm text-base-content">Загрузка данных...</p>
+        </div>
+      </div>
+
+
       <!-- ФИЛЬТРЫ для "Возвраты СО" -->
       <div class="flex flex-wrap justify-between items-end gap-4 mb-5">
         <div class="grid grid-rows-2 gap-4 ml-2">
@@ -217,12 +231,12 @@
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
           <div class="flex flex-wrap items-end gap-3">
             <button class="btn btn-primary" type="button" @click="loadReport(getReportDateFromRefunds())" :disabled="reportLoading">
-              Показать
+              Отчет – 418
             </button>
           </div>
 
           <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-outline">Сформировать отчет</div>
+            <div tabindex="0" role="button" class="btn btn-outline">Скачать отчет</div>
             <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-10 w-56 p-2 shadow">
               <li>
                 <a href="#" @click.prevent="downloadExcel()">Отчет - 418 (Excel)</a>
