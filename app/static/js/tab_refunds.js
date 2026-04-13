@@ -115,6 +115,8 @@ function refundsTable() {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
+
+        await this.loadData();
       } catch (error) {
         console.error('Ошибка утверждения с 1 по 2 статус:', error);
       } finally {
@@ -175,9 +177,9 @@ function refundsTable() {
 
         const matchesType =
           this.typeFilter === 'any' ||
+          (this.typeFilter === 'СЗ' && type_payer === 'СЗ') ||
           (this.typeFilter === 'СО' && knp === '026') ||
-          (this.typeFilter === 'ЕП' && knp === '094') ||
-          (this.typeFilter === 'СЗ' && type_payer === 'СЗ');
+          (this.typeFilter === 'ЕП' && knp === '094');
 
         return matchesSearch && matchesStatus && matchesType;
       });
