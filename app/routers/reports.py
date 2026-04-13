@@ -1,22 +1,17 @@
 from datetime import datetime
-
-from fastapi import FastAPI, Depends, Request, APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
-import json
-from decimal import Decimal
-
-from pydantic import BaseModel
 from typing import List
 
+from fastapi import Depends, Request, APIRouter, HTTPException, Query
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
+from app.config import templates, PACKAGE_NAME
 from app.core.security import login_required
 from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows, get_who_approved
-from app.config import templates, PACKAGE_NAME
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
-from app.utils.masker import mask_iin, mask_ids
 from app.utils.no_cache import no_cache
 
 router = APIRouter()
@@ -44,6 +39,15 @@ async def get_reports_data(
     user=Depends(login_required)
 ):
     user_name = user.masked_name
+
+    if user.top_control != 1 and user.top_control != 2:
+        log.warning(
+            "Forbidden GET /reports/data by user=%s, top_control=%s",
+            user_name,
+            user.top_control
+        )
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/data")
+
     log.info("GET /reports/data requested by user=%s, status=%s", user_name, status)
 
     try:
@@ -75,6 +79,14 @@ async def get_order_data(
     user=Depends(login_required)
 ):
     user_name = user.masked_name
+
+    if user.top_control != 1 and user.top_control != 2:
+        log.warning(
+            "Forbidden GET /reports/order-data by user=%s, top_control=%s",
+            user_name,
+            user.top_control
+        )
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/order-data")
 
     if date == '':
         log.warning("Empty date to GET /order-data by user=%s", user_name)
@@ -184,6 +196,15 @@ async def get_person(
     user=Depends(login_required)
 ):
     user_name = user.masked_name
+
+    if user.top_control != 1 and user.top_control != 2:
+        log.warning(
+            "Forbidden GET /reports/persons by user=%s, top_control=%s",
+            user_name,
+            user.top_control
+        )
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/persons")
+
     log.info("GET /reports/data requested by user=%s, sior_id=%s", user_name, sior_id)
 
     try:
@@ -218,13 +239,11 @@ async def accept_all(request: Request, user=Depends(login_required)):
         log.warning("Unauthorized access to POST /accept_all")
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    user_top_control = user.top_control
-
-    if user_top_control != 1:
+    if user.top_control != 2:
         log.warning(
             "Forbidden bulk accept attempt by user=%s, top_control=%s",
             user_name,
-            user_top_control
+            user.top_control
         )
         raise HTTPException(status_code=403, detail="Forbidden to accept all")
 

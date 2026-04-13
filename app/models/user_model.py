@@ -1,5 +1,5 @@
 from fastapi import Request
-from app.utils.roles import manager_posts
+from app.utils.roles import manager_posts, viewer_deps
 from app.utils.logger import log
 
 
@@ -123,10 +123,10 @@ class USER:
         - 0 -> остальные
         """
         if self.post in manager_posts:
-            self.roles = "manager"
+            self.top_control = 2
+        elif self.dep_name in viewer_deps:
             self.top_control = 1
         else:
-            self.roles = "user"
             self.top_control = 0
 
     def is_authenticated(self):
