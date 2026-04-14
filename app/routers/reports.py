@@ -119,14 +119,33 @@ async def get_order_data(
                 "count": 0,
                 "amount": 0.0,
             },
+            "026_sz": {
+                "label": "СЗ_026",
+                "count": 0,
+                "amount": 0.0,
+            },
+            "094_sz": {
+                "label": "СЗ_094",
+                "count": 0,
+                "amount": 0.0,
+            },
         }
 
         for amount, count, knp, typ in rows:
             amount_value = float(amount or 0)
             count_value = int(count or 0)
             knp_value = str(knp or "").zfill(3)
+            typ_value = str(typ or "").strip()
 
-            if knp_value == "026":
+            if typ_value == "СЗ" and knp_value == "026":
+                data["026_sz"]["count"] = count_value
+                data["026_sz"]["amount"] = amount_value
+
+            elif typ_value == "СЗ" and knp_value == "094":
+                data["094_sz"]["count"] = count_value
+                data["094_sz"]["amount"] = amount_value
+
+            elif knp_value == "026":
                 data["026"]["count"] = count_value
                 data["026"]["amount"] = amount_value
 
@@ -141,25 +160,29 @@ async def get_order_data(
         table_rows = [
             {
                 "ttk": "026",
-                "total_count": data["026"]["count"],
-                "total_amount": data["026"]["amount"],
+                "total_count": data["026"]["count"] + data["026_sz"]["count"],
+                "total_amount": data["026"]["amount"] + data["026_sz"]["amount"],
                 "part_026_count": data["026"]["count"],
                 "part_026_amount": data["026"]["amount"],
                 "part_094_count": 0,
                 "part_094_amount": 0.0,
                 "part_bt_count": 0,
                 "part_bt_amount": 0.0,
+                "part_sz_count": data["026_sz"]["count"],
+                "part_sz_amount": data["026_sz"]["amount"],
             },
             {
                 "ttk": "094",
-                "total_count": data["094_penalty"]["count"] + data["094_bt"]["count"],
-                "total_amount": data["094_penalty"]["amount"] + data["094_bt"]["amount"],
+                "total_count": data["094_penalty"]["count"] + data["094_bt"]["count"] + data["094_sz"]["count"],
+                "total_amount": data["094_penalty"]["amount"] + data["094_bt"]["amount"] + data["094_sz"]["amount"],
                 "part_026_count": 0,
                 "part_026_amount": 0.0,
                 "part_094_count": data["094_penalty"]["count"],
                 "part_094_amount": data["094_penalty"]["amount"],
                 "part_bt_count": data["094_bt"]["count"],
                 "part_bt_amount": data["094_bt"]["amount"],
+                "part_sz_count": data["094_sz"]["count"],
+                "part_sz_amount": data["094_sz"]["amount"],
             },
         ]
 
@@ -173,6 +196,8 @@ async def get_order_data(
             "part_094_amount": sum(r["part_094_amount"] for r in table_rows),
             "part_bt_count": sum(r["part_bt_count"] for r in table_rows),
             "part_bt_amount": sum(r["part_bt_amount"] for r in table_rows),
+            "part_sz_count": sum(r["part_sz_count"] for r in table_rows),
+            "part_sz_amount": sum(r["part_sz_amount"] for r in table_rows),
         }
 
         return {

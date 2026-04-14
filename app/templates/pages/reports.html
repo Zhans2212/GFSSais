@@ -275,7 +275,7 @@
                   <tr>
                     <th rowspan="3">ТТК</th>
                     <th colspan="2">Барлығы</th>
-                    <th colspan="6">Соның ішінде</th>
+                    <th colspan="8">Соның ішінде</th>
                   </tr>
                   <tr>
                     <th rowspan="2">Адам саны</th>
@@ -283,8 +283,11 @@
                     <th colspan="2">026 ТТК б-ша ӘА</th>
                     <th colspan="2">094 ТТК б-ша ӘА өсімпұлы</th>
                     <th colspan="2">БТ</th>
+                    <th colspan="2">ӨЖҚ</th>
                   </tr>
                   <tr>
+                    <th>Адам саны</th>
+                    <th>Сома (теңге)</th>
                     <th>Адам саны</th>
                     <th>Сома (теңге)</th>
                     <th>Адам саны</th>
@@ -306,6 +309,8 @@
                       <td x-text="formatAmount(row.part_094_amount)"></td>
                       <td x-text="row.part_bt_count"></td>
                       <td x-text="formatAmount(row.part_bt_amount)"></td>
+                      <td x-text="row.part_sz_count"></td>
+                      <td x-text="formatAmount(row.part_sz_amount)"></td>
                     </tr>
                   </template>
 
@@ -319,6 +324,8 @@
                     <td x-text="formatAmount(total.part_094_amount || 0)"></td>
                     <td x-text="total.part_bt_count || 0"></td>
                     <td x-text="formatAmount(total.part_bt_amount || 0)"></td>
+                    <td x-text="total.part_sz_count || 0"></td>
+                    <td x-text="formatAmount(total.part_sz_amount || 0)"></td>
                   </tr>
                 </tbody>
               </table>
