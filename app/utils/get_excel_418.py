@@ -84,15 +84,21 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     elements.append(Spacer(1, 26))
 
     # --- DATA ---
-    d5 = e5 = f5 = g5 = h5 = i5 = 0
-    d6 = e6 = f6 = g6 = h6 = i6 = 0
+    d5 = e5 = f5 = g5 = h5 = i5 = j5 = k5 = 0
+    d6 = e6 = f6 = g6 = h6 = i6 = j6 = k6 = 0
 
     if rows:
         for amount, count, knp, typ in rows:
             amount = amount or 0
             count = count or 0
 
-            if knp == "026":
+            if knp == "026" and typ == "СЗ":
+                j5 = count
+                k5 = amount
+            elif knp == "094" and typ == "СЗ":
+                j6 = count
+                k6 = amount
+            elif knp == "026":
                 d5 = count
                 e5 = amount
             elif knp == "094" and typ is None:
@@ -102,53 +108,49 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
                 h6 = count
                 i6 = amount
 
-    c5 = e5 + g5 + i5
-    c6 = e6 + g6 + i6
-    b5 = d5 + f5 + h5
-    b6 = d6 + f6 + h6
+    c5 = e5 + g5 + i5 + k5
+    c6 = e6 + g6 + i6 + k6
+
+    b5 = d5 + f5 + h5 + j5
+    b6 = d6 + f6 + h6 + j6
+
     b7 = b5 + b6
     c7 = c5 + c6
 
     data = [
-        [
-            "ТТК",
-            "Барлығы", "",
-            "Соның ішінде", "", "", "", "", ""
-        ],
-        [
-            "",
-            "Адам саны", "Сома (теңге)",
-            "026 ТТК б-ша ӘА", "",
-            "094 ТТК б-ша ӘА өсімпұлы", "",
-            "БТ", ""
-        ],
-        [
-            "",
-            "", "",
-            "Адам саны", "Сома (теңге)",
-            "Адам саны", "Сома (теңге)",
-            "Адам саны", "Сома (теңге)"
-        ],
-        ["026", b5, f"{c5:,.2f}", d5, f"{e5:,.2f}", f5, f"{g5:,.2f}", h5, f"{i5:,.2f}"],
-        ["094", b6, f"{c6:,.2f}", d6, f"{e6:,.2f}", f6, f"{g6:,.2f}", h6, f"{i6:,.2f}"],
-        ["", b7, f"{c7:,.2f}", "", "", "", "", "", ""],
+        ["ТТК", "Барлығы", "", "Соның ішінде", "", "", "", "", "", "", ""],
+        ["", "Адам саны", "Сома (теңге)",
+         "026 ТТК б-ша ӘА", "",
+         "094 ТТК б-ша ӘА өсімпұлы", "",
+         "БТ", "",
+         "ӨЖҚ", ""],
+        ["", "", "",
+         "Адам саны", "Сома (теңге)",
+         "Адам саны", "Сома (теңге)",
+         "Адам саны", "Сома (теңге)",
+         "Адам саны", "Сома (теңге)"],
+
+        ["026", b5, f"{c5:,.2f}", d5, f"{e5:,.2f}", f5, f"{g5:,.2f}", h5, f"{i5:,.2f}", j5, f"{k5:,.2f}"],
+        ["094", b6, f"{c6:,.2f}", d6, f"{e6:,.2f}", f6, f"{g6:,.2f}", h6, f"{i6:,.2f}", j6, f"{k6:,.2f}"],
+        ["", b7, f"{c7:,.2f}", "", "", "", "", "", "", "", ""],
     ]
 
     table = Table(
         data,
         repeatRows=1,
-        colWidths=[50, 80, 100, 80, 90, 120, 120, 80, 90]
+        colWidths=[40, 60, 80, 60, 80, 60, 80, 60, 80, 60, 80]
     )
 
     table.setStyle(TableStyle([
         # --- ОБЪЕДИНЕНИЯ ---
         ("SPAN", (0, 0), (0, 2)),  # ТТК
         ("SPAN", (1, 0), (2, 0)),  # Барлығы
-        ("SPAN", (3, 0), (8, 0)),  # Соның ішінде
+        ("SPAN", (3, 0), (10, 0)),  # Соның ішінде
 
         ("SPAN", (3, 1), (4, 1)),  # 026
         ("SPAN", (5, 1), (6, 1)),  # 094
         ("SPAN", (7, 1), (8, 1)),  # БТ
+        ("SPAN", (9, 1), (10, 1)),  # ӨЖҚ
 
         ("SPAN", (1, 1), (1, 2)),  # Адам саны (Барлығы)
         ("SPAN", (2, 1), (2, 2)),  # Сома (Барлығы)
@@ -216,31 +218,32 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
 
     # -------- TOP TEXT (HEADER OF DOCUMENT) --------
 
-    ws.merge_cells("A6:I6")
-    ws.merge_cells("B8:H8")
+    ws.merge_cells("A6:K6")
+    ws.merge_cells("A8:K8")
 
-    ws["I1"] = f"{date}"
-
-    ws["I1"].alignment = right
+    ws["K1"] = f"{date}"
+    ws["K1"].alignment = right
     ws["I1"].font = Font(italic=True)
 
     ws["A6"] = "Тапсырыс"
     ws["A6"].alignment = center
     ws["A6"].font = Font(bold=True, size=14)
 
-    ws["B8"] = (
+    ws["A8"] = (
         "«Мемлекеттік әлеуметтік сақтандыру қоры» акционерлік қоғамының Бухгалтерлік есеп, есептілік және инвестициялық талдау департаменті"
         "\nМемлекеттік корпорацияның шотына келесі артық (қате) төленген әлеуметтік аударымдарды және (немесе) өсімпұлдар сомаларын аударсын:"
     )
-    ws["B8"].alignment = center
+    ws["A8"].alignment = center
     ws.row_dimensions[8].height = 60
 
     # -------- TABLE MERGES --------
 
     merges = [
-        ("A",1,"A",4), ("B",1,"C",1), ("D",1,"I",1),
+        ("A",1,"A",4), ("B",1,"C",1), ("D",1,"K",1),
         ("B",2,"B",4), ("C",2,"C",4),
         ("D",2,"E",2), ("F",2,"G",2), ("H",2,"I",2),
+        ("J", 2, "K", 2),
+        ("J", 3, "J", 4), ("K", 3, "K", 4),
         ("D",3,"D",4), ("E",3,"E",4), ("F",3,"F",4),
         ("G",3,"G",4), ("H",3,"H",4), ("I",3,"I",4)
     ]
@@ -265,6 +268,9 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
         ("G",3): "Сома (теңге)",
         ("H",3): "Адам саны",
         ("I",3): "Сома (теңге)",
+        ("J", 2): "ӨЖҚ",
+        ("J", 3): "Адам саны",
+        ("K", 3): "Сома (теңге)",
     }
 
     for (col, row), text in header.items():
@@ -275,13 +281,13 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
 
     # -------- STYLES --------
 
-    for row in ws[f"A{r(1)}:I{r(4)}"]:
+    for row in ws[f"A{r(1)}:K{r(4)}"]:
         for c in row:
             c.alignment = center
             c.font = bold
             c.border = border
 
-    for row in ws[f"A{r(5)}:I{r(7)}"]:
+    for row in ws[f"A{r(5)}:K{r(7)}"]:
         for c in row:
             c.alignment = center
             c.border = border
@@ -291,7 +297,8 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
     for col, row in [
         ("E",5), ("G",5), ("I",5),
         ("E",6), ("G",6), ("I",6),
-        ("C",5), ("C",6), ("C",7)
+        ("C",5), ("C",6), ("C",7),
+        ("K", 5), ("K", 6)
     ]:
         ws[cell(col, row)].number_format = '# ### ### ##0.00'
 
@@ -300,52 +307,60 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
     if rows:
         for amount, count, knp, typ in rows:
 
-            if knp == "026":
+            if knp == "026" and typ == "СЗ":
+                ws[cell("J", 5)] = count
+                ws[cell("K", 5)] = amount
+            elif knp == "094" and typ == "СЗ":
+                ws[cell("J", 6)] = count
+                ws[cell("K", 6)] = amount
+            elif knp == "026":
                 ws[cell("D",5)] = count
                 ws[cell("E",5)] = amount
-
             elif knp == "094" and typ is None:
                 ws[cell("F",6)] = count
                 ws[cell("G",6)] = amount
-
             elif knp == "094" and typ == "О":
                 ws[cell("H",6)] = count
                 ws[cell("I",6)] = amount
 
+    for row in ws[f"D{r(5)}:K{r(6)}"]:
+        for c in row:
+            if c.value is None:
+                c.value = 0
     # -------- SUM FUNCTION --------
 
     def s(coords):
         return sum(ws[cell(c, r)].value or 0 for c, r in coords)
 
-    ws[cell("C",5)] = s([("E",5), ("G",5), ("I",5)])
-    ws[cell("C",6)] = s([("E",6), ("G",6), ("I",6)])
+    ws[cell("C", 5)] = s([("E", 5), ("G", 5), ("I", 5), ("K", 5)])
+    ws[cell("C", 6)] = s([("E", 6), ("G", 6), ("I", 6), ("K", 6)])
 
-    ws[cell("B",5)] = s([("D",5), ("F",5), ("H",5)])
-    ws[cell("B",6)] = s([("D",6), ("F",6), ("H",6)])
+    ws[cell("B", 5)] = s([("D", 5), ("F", 5), ("H", 5), ("J", 5)])
+    ws[cell("B", 6)] = s([("D", 6), ("F", 6), ("H", 6), ("J", 6)])
 
-    ws[cell("C",7)] = s([
-        ("E",5), ("G",5), ("I",5),
-        ("E",6), ("G",6), ("I",6)
+    ws[cell("C", 7)] = s([
+        ("E", 5), ("G", 5), ("I", 5), ("K", 5),
+        ("E", 6), ("G", 6), ("I", 6), ("K", 6)
     ])
 
-    ws[cell("B",7)] = s([
-        ("D",5), ("F",5), ("H",5),
-        ("D",6), ("F",6), ("H",6)
+    ws[cell("B", 7)] = s([
+        ("D", 5), ("F", 5), ("H", 5), ("J", 5),
+        ("D", 6), ("F", 6), ("H", 6), ("J", 6)
     ])
 
-    ws.merge_cells(f"{cell('A',10)}:{cell('I',10)}")
+    ws.merge_cells(f"{cell('A',10)}:{cell('K',10)}")
     ws[cell("A",10)] = f'«МӘСҚ» АҚ Басқарма Төрағасының орынбасары: __________________ {approved_by.get("fio")}'
     ws[cell("A",10)].alignment = center
     ws[cell("A",10)].font = Font(bold=True, size=14)
 
-    ws.merge_cells(f"{cell('A', 15)}:{cell('I', 15)}")
+    ws.merge_cells(f"{cell('A', 15)}:{cell('K', 15)}")
     ws[cell("A", 15)] = f"Орынд. {fio}"
     ws[cell("A", 15)].alignment = left
     ws[cell("A", 15)].font = Font(italic=True)
 
     # -------- COLUMN WIDTH --------
 
-    widths = [10, 20, 15, 20, 15, 20, 15, 20, 15]
+    widths = [5, 10, 15, 10, 15, 10, 15, 10, 15, 10, 15]
 
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[chr(64 + i)].width = w
