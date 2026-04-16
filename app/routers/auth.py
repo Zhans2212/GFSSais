@@ -3,12 +3,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from app.config import templates
-from app.core.security import login_required
 from app.core.sso_client import sso_login, sso_logout
 from app.models.user_model import USER
 from app.utils.logger import log
 from app.utils.masker import mask_username, mask_ip
-from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -27,11 +25,9 @@ async def home(request: Request):
     #     return RedirectResponse("/reports", status_code=303)
 
     log.info("Login page rendered")
-    return no_cache(
-        templates.TemplateResponse(
-            "pages/login.html",
-            {"request": request}
-        )
+    return templates.TemplateResponse(
+        "pages/login.html",
+        {"request": request}
     )
 
 @router.post("/auth")

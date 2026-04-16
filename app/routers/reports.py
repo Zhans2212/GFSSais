@@ -12,7 +12,6 @@ from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_ro
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
-from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -25,11 +24,9 @@ TODAY = datetime.today().strftime("%d.%m.%Y")
 async def home(request: Request, user=Depends(login_required)):
     log.info("GET /reports requested by user=%s", user.masked_name)
 
-    return no_cache(
-        templates.TemplateResponse(
-            "pages/reports.html",
-            {"request": request, "user": user}
-        )
+    return templates.TemplateResponse(
+        "pages/reports.html",
+        {"request": request, "user": user}
     )
 
 

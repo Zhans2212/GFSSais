@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.config import templates
 from app.core.security import login_required
 from app.utils.logger import log
-from app.utils.no_cache import no_cache
 
 router = APIRouter()
 
@@ -16,7 +15,7 @@ async def home(request: Request, user=Depends(login_required)):
         return RedirectResponse("/login", status_code=303)
 
     log.info("User %s requested the profile page", user.username)
-    return no_cache(templates.TemplateResponse(
+    return templates.TemplateResponse(
         "pages/profile.html",
         {"request": request, "user": user}
-    ))
+    )
