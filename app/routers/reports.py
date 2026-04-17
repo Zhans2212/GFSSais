@@ -70,6 +70,14 @@ async def get_reports_data(
         )
         raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
+
+@router.get("/access-to-approve")
+async def check_role(user=Depends(login_required)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    return user.top_control == 2
+
 @router.get("/order-data")
 async def get_order_data(
     date: str,

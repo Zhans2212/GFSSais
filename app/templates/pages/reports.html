@@ -47,7 +47,7 @@
           </label>
         </div>
 
-        <div class="grid grid-rows-2 gap-4 ml-2">
+        <div x-show="canApprove" x-cloak class="grid grid-rows-2 gap-4 ml-2">
           <div class="flex gap-4">
             <label class="label cursor-pointer gap-2">
               <input type="radio" name="type" class="radio" value="all" x-model="acceptRadio" checked />

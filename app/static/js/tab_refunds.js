@@ -10,6 +10,7 @@ function refundsTable() {
     statusFilter: '1',
     typeFilter: 'any',
 
+    accessToApprove: false,
     acceptRadio: 'all',
 
     personLoading: false,
@@ -25,6 +26,27 @@ function refundsTable() {
 
     async init() {
       await this.loadData();
+      await this.checkAccess();
+    },
+
+    async checkAccess() {
+      try {
+        const response = await fetch(`/reports/access-to-approve`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        this.accessToApprove = data === true;
+      } catch (e) {
+        console.error('Ошибка проверки доступа:', e);
+        this.accessToApprove = false;
+      }
+    },
+
+    get canApprove() {
+      return this.accessToApprove && this.statusFilter === '1';
     },
 
     async loadData() {
