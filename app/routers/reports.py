@@ -73,9 +73,13 @@ async def get_reports_data(
 
 @router.get("/access-to-approve")
 async def check_role(user=Depends(login_required)):
+    log.info("GET /access-to-approve requested by user=%s", user.masked_name)
+
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    log.info("The result of /access-to-approve for user=%s with top_control %s: %s",
+             user.masked_name, user.top_control, user.top_control == 2)
     return user.top_control == 2
 
 @router.get("/order-data")
