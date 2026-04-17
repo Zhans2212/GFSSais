@@ -12,6 +12,7 @@ from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_ro
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
+from app.utils.order_report_418 import build_order_report
 
 router = APIRouter()
 
@@ -83,145 +84,30 @@ async def check_role(user=Depends(login_required)):
     return user.top_control == 2
 
 @router.get("/order-data")
-async def get_order_data(
-    date: str,
-    user=Depends(login_required)
-):
+async def get_order_data(date: str, user=Depends(login_required)):
     user_name = user.masked_name
 
-    if user.top_control != 1 and user.top_control != 2:
-        log.warning(
-            "Forbidden GET /reports/order-data by user=%s, top_control=%s",
-            user_name,
-            user.top_control
-        )
-        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/order-data")
+    if user.top_control not in (1, 2):
+        raise HTTPException(status_code=403, detail="Forbidden")
 
-    if date == '':
-        log.warning("Empty date to GET /order-data by user=%s", user_name)
+    if not date:
         raise HTTPException(status_code=400, detail="Bad request")
 
-    log.info("GET /reports/order-data requested by user=%s, date=%s", user_name, date)
-
-    if not user:
-        log.warning("Unauthorized access to GET /reports/order-data")
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
     try:
-        person = get_who_approved(PACKAGE_NAME)
-        log.info("PERSON WHO APPROVED = %s", person.get("fio"))
         rows = get_order_rows(date, PACKAGE_NAME)
 
-        data = {
-            "026": {
-                "label": "026 ТТК б-ша ӘА",
-                "count": 0,
-                "amount": 0.0,
-            },
-            "094_penalty": {
-                "label": "094 ТТК б-ша ӘА өсімпұлы",
-                "count": 0,
-                "amount": 0.0,
-            },
-            "094_bt": {
-                "label": "БТ",
-                "count": 0,
-                "amount": 0.0,
-            },
-            "026_sz": {
-                "label": "СЗ_026",
-                "count": 0,
-                "amount": 0.0,
-            },
-            "094_sz": {
-                "label": "СЗ_094",
-                "count": 0,
-                "amount": 0.0,
-            },
-        }
+        log.info("Got rows = %s", rows)
 
-        for amount, count, knp, typ in rows:
-            amount_value = float(amount or 0)
-            count_value = int(count or 0)
-            knp_value = str(knp or "").zfill(3)
-            typ_value = str(typ or "").strip()
-
-            if typ_value == "СЗ" and knp_value == "026":
-                data["026_sz"]["count"] = count_value
-                data["026_sz"]["amount"] = amount_value
-
-            elif typ_value == "СЗ" and knp_value == "094":
-                data["094_sz"]["count"] = count_value
-                data["094_sz"]["amount"] = amount_value
-
-            elif knp_value == "026":
-                data["026"]["count"] = count_value
-                data["026"]["amount"] = amount_value
-
-            elif knp_value == "094" and typ is None:
-                data["094_penalty"]["count"] = count_value
-                data["094_penalty"]["amount"] = amount_value
-
-            elif knp_value == "094" and str(typ) == "О":
-                data["094_bt"]["count"] = count_value
-                data["094_bt"]["amount"] = amount_value
-
-        table_rows = [
-            {
-                "ttk": "026",
-                "total_count": data["026"]["count"] + data["026_sz"]["count"],
-                "total_amount": data["026"]["amount"] + data["026_sz"]["amount"],
-                "part_026_count": data["026"]["count"],
-                "part_026_amount": data["026"]["amount"],
-                "part_094_count": 0,
-                "part_094_amount": 0.0,
-                "part_bt_count": 0,
-                "part_bt_amount": 0.0,
-                "part_sz_count": data["026_sz"]["count"],
-                "part_sz_amount": data["026_sz"]["amount"],
-            },
-            {
-                "ttk": "094",
-                "total_count": data["094_penalty"]["count"] + data["094_bt"]["count"] + data["094_sz"]["count"],
-                "total_amount": data["094_penalty"]["amount"] + data["094_bt"]["amount"] + data["094_sz"]["amount"],
-                "part_026_count": 0,
-                "part_026_amount": 0.0,
-                "part_094_count": data["094_penalty"]["count"],
-                "part_094_amount": data["094_penalty"]["amount"],
-                "part_bt_count": data["094_bt"]["count"],
-                "part_bt_amount": data["094_bt"]["amount"],
-                "part_sz_count": data["094_sz"]["count"],
-                "part_sz_amount": data["094_sz"]["amount"],
-            },
-        ]
-
-        total_row = {
-            "ttk": "Барлығы",
-            "total_count": sum(r["total_count"] for r in table_rows),
-            "total_amount": sum(r["total_amount"] for r in table_rows),
-            "part_026_count": sum(r["part_026_count"] for r in table_rows),
-            "part_026_amount": sum(r["part_026_amount"] for r in table_rows),
-            "part_094_count": sum(r["part_094_count"] for r in table_rows),
-            "part_094_amount": sum(r["part_094_amount"] for r in table_rows),
-            "part_bt_count": sum(r["part_bt_count"] for r in table_rows),
-            "part_bt_amount": sum(r["part_bt_amount"] for r in table_rows),
-            "part_sz_count": sum(r["part_sz_count"] for r in table_rows),
-            "part_sz_amount": sum(r["part_sz_amount"] for r in table_rows),
-        }
+        result = build_order_report(rows)
 
         return {
             "date": date,
-            "rows": table_rows,
-            "total": total_row,
+            **result
         }
 
     except Exception:
-        log.exception(
-            "Failed to build order report data for user=%s, date=%s",
-            user_name,
-            date
-        )
-        raise HTTPException(status_code=500, detail="Ошибка при формировании данных отчета")
+        log.exception("Failed report user=%s date=%s", user_name, date)
+        raise HTTPException(status_code=500, detail="Ошибка формирования отчета")
 
 
 @router.get("/persons")
