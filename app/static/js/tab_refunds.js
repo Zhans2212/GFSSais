@@ -10,6 +10,8 @@ function refundsTable() {
     statusFilter: '1',
     typeFilter: 'any',
 
+    acceptRadio: 'all',
+
     personLoading: false,
     personError: '',
     personsRows: [],
@@ -110,7 +112,8 @@ function refundsTable() {
       this.loading = true;
 
       try {
-        const response = await fetch(`/reports/accept_all`, {method: 'POST'});
+        const response = await fetch(`/reports/accept_all?typ=${encodeURIComponent(this.acceptRadio)}`,
+            {method: 'POST'});
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -157,13 +160,13 @@ function refundsTable() {
     get filteredRows() {
       return this.rows.filter(row => {
         const rowStatus = String(row.status ?? '');
-        const knp = String(row.knp ?? '').padStart(3, '0');
 
         const searchValue = this.search.trim().toLowerCase();
         const sior_id = String(row.sior_id ?? '').toLowerCase();
         const refer = String(row.refer_in ?? '').toLowerCase();
         const bin = String(row.bin ?? '').toLowerCase();
-        const type_payer = String(row.type_payer ?? '').toLowerCase();
+        const type_payer = String(row.type_payer ?? '').toUpperCase();
+        const code1c = String(row.code1c ?? '').toUpperCase();
 
         const matchesSearch =
           !searchValue ||
@@ -178,8 +181,8 @@ function refundsTable() {
         const matchesType =
           this.typeFilter === 'any' ||
           (this.typeFilter === 'СЗ' && type_payer === 'СЗ') ||
-          (this.typeFilter === 'СО' && knp === '026') ||
-          (this.typeFilter === 'ЕП' && knp === '094');
+          (this.typeFilter === 'СО' && code1c === 'СО') ||
+          (this.typeFilter === 'ЕП' && code1c === 'ЕП');
 
         return matchesSearch && matchesStatus && matchesType;
       });

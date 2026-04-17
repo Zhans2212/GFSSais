@@ -252,7 +252,7 @@ async def get_person(
 
 
 @router.post("/accept_all")
-async def accept_all(request: Request, user=Depends(login_required)):
+async def accept_all(request: Request, typ: str = Query(), user=Depends(login_required)):
     user_name = user.masked_name
 
     log.info("POST /accept_all requested by user=%s", user_name)
@@ -270,16 +270,21 @@ async def accept_all(request: Request, user=Depends(login_required)):
         raise HTTPException(status_code=403, detail="Forbidden to accept all")
 
     try:
-        bulk_accept_all(user.post, user.masked_name, package_name=PACKAGE_NAME)
+        filter_map = ["all", "ep", "so", "sz"]
 
-        log.info(
-            "Bulk status update completed successfully by user=%s",
-            user_name
+        if typ not in filter_map:
+            raise HTTPException(status_code=400, detail="Invalid type")
+
+        log.info("TYPE OF REPORTS APPROVED: " + typ)
+
+        bulk_accept_all(
+            typ,
+            user.post,
+            user.masked_name,
+            package_name=PACKAGE_NAME
         )
 
-        return {
-            "ok": True
-        }
+        return {"ok": True}
 
     except Exception:
         log.exception(

@@ -47,9 +47,32 @@
           </label>
         </div>
 
-        <button class="btn btn-success" type="button" @click="acceptAll()">
-          Одобрить всё
-        </button>
+        <div class="grid grid-rows-2 gap-4 ml-2">
+          <div class="flex gap-4">
+            <label class="label cursor-pointer gap-2">
+              <input type="radio" name="type" class="radio" value="all" x-model="acceptRadio" checked />
+              <span class="label-text">Всё</span>
+            </label>
+
+            <label class="label cursor-pointer gap-2">
+              <input type="radio" name="type" class="radio" value="so" x-model="acceptRadio" />
+              <span class="label-text">СО</span>
+            </label>
+
+            <label class="label cursor-pointer gap-2">
+              <input type="radio" name="type" class="radio" value="ep" x-model="acceptRadio" />
+              <span class="label-text">ЕП</span>
+            </label>
+
+            <label class="label cursor-pointer gap-2">
+              <input type="radio" name="type" class="radio" value="sz" x-model="acceptRadio" />
+              <span class="label-text">СЗ</span>
+            </label>
+          </div>
+          <button class="btn btn-success" type="button" @click="acceptAll()">
+            Одобрить
+          </button>
+        </div>
 
         <label class="input outline-none text-secondary-content">
           <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -95,10 +118,10 @@
               <th>Статус</th>
               <th>КНП</th>
               <th>Тип возврата</th>
+              <th>Тип плательщика</th>
               <th>Дата ООП</th>
               <th>Дата ГФСС</th>
               <th>Дата 1С</th>
-              <th>Действие</th>
             </tr>
           </thead>
 
@@ -117,11 +140,11 @@
                 <td x-text="refund.ret_sum"></td>
                 <td x-text="refund.status"></td>
                 <td x-text="refund.knp"></td>
+                <td x-text="refund.code1c"></td>
                 <td x-text="refund.type_payer"></td>
                 <td x-text="refund.ret_date"></td>
                 <td x-text="refund.recv_date"></td>
                 <td x-text="refund.c1_doc_date"></td>
-                <td></td>
               </tr>
             </template>
 
