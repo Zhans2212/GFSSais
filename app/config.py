@@ -6,7 +6,7 @@ hostname = "127.0.0.1"
 port = 5200
 LOG_PATH = "logs"
 debug = False
-PACKAGE_NAME = "DASORP_TEST"
+PACKAGE_NAME = "DASORP"
 
 templates = Jinja2Templates(directory="app/templates")
 
