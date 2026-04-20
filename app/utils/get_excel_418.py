@@ -10,6 +10,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
+from app.utils.order_report_418 import format_kz
+
 
 def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     buffer = BytesIO()
@@ -137,8 +139,8 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
          "Адам саны", "Сома (теңге)",
          "Адам саны", "Сома (теңге)"],
 
-        ["026", b5, f"{c5:,.2f}", d5, f"{e5:,.2f}", f5, f"{g5:,.2f}", h5, f"{i5:,.2f}", j5, f"{k5:,.2f}"],
-        ["094", b6, f"{c6:,.2f}", d6, f"{e6:,.2f}", f6, f"{g6:,.2f}", h6, f"{i6:,.2f}", j6, f"{k6:,.2f}"],
+        ["026", b5, format_kz(c5), d5, format_kz(e5), f5, format_kz(g5), h5, format_kz(i5), j5, format_kz(k5)],
+        ["094", b6, format_kz(c6), d6, format_kz(e6), f6, format_kz(g6), h6, format_kz(i6), j6, format_kz(k6)],
         ["", b7, f"{c7:,.2f}", "", "", "", "", "", "", "", ""],
     ]
 

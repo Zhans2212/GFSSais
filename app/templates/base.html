@@ -78,7 +78,7 @@
     {% block content %}{% endblock %}
 </div>
 
-<script src="{{ url_for('static', path='js/toggle_mode.js') }}"></script>
+<script src="{{ url_for('static', path='js/toggle_mode.js') }}?v={{ version }}"></script>
 
 </body>
 </html>

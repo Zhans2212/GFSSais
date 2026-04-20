@@ -6,9 +6,12 @@ hostname = "127.0.0.1"
 port = 5200
 LOG_PATH = "logs"
 debug = False
-PACKAGE_NAME = "DASORP"
+PACKAGE_NAME = "DASORP_TEST"
 
 templates = Jinja2Templates(directory="app/templates")
+
+VERSION = "1.0.0"
+templates.env.globals["version"] = VERSION
 
 def setup_static(app):
     app.mount("/static", StaticFiles(directory="app/static"), name="static")

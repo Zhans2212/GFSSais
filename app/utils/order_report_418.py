@@ -1,3 +1,6 @@
+def format_kz(number):
+    return f"{number:,.2f}".replace(",", " ").replace(".", ",")
+
 def resolve(knp: str, typ: str | None):
     knp = str(knp or "").zfill(3)
     typ = (typ or "").strip()
