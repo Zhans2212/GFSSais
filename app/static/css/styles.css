@@ -1552,14 +1552,8 @@
       }
     }
   }
-  .absolute {
-    position: absolute;
-  }
   .fixed {
     position: fixed;
-  }
-  .relative {
-    position: relative;
   }
   .static {
     position: static;
@@ -1706,9 +1700,6 @@
   .z-10 {
     z-index: 10;
   }
-  .z-50 {
-    z-index: 50;
-  }
   .z-\[9999\] {
     z-index: 9999;
   }
@@ -1818,18 +1809,6 @@
   }
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
-  }
-  .input-xs {
-    @layer daisyui.l1.l2 {
-      --size: calc(var(--size-field, 0.25rem) * 6);
-      font-size: max(var(--font-size, 0.6875rem), 0.6875rem);
-      &[type="number"] {
-        &::-webkit-inner-spin-button {
-          margin-block: calc(0.25rem * -1);
-          margin-inline-end: calc(0.25rem * -3);
-        }
-      }
-    }
   }
   .label {
     @layer daisyui.l1.l2.l3 {
@@ -2126,9 +2105,6 @@
   .w-7 {
     width: calc(var(--spacing) * 7);
   }
-  .w-48 {
-    width: calc(var(--spacing) * 48);
-  }
   .w-52 {
     width: calc(var(--spacing) * 52);
   }
@@ -2313,9 +2289,6 @@
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
-  .p-3 {
-    padding: calc(var(--spacing) * 3);
-  }
   .p-4 {
     padding: calc(var(--spacing) * 4);
   }
@@ -2338,16 +2311,6 @@
       }
       font-size: 0.875rem;
       font-weight: 600;
-    }
-  }
-  .select-xs {
-    @layer daisyui.l1.l2 {
-      --size: calc(var(--size-field, 0.25rem) * 6);
-      font-size: 0.6875rem;
-      option {
-        padding-inline: calc(0.25rem * 2);
-        padding-block: calc(0.25rem * 1);
-      }
     }
   }
   .table-xs {
@@ -2446,10 +2409,6 @@
   }
   .shadow {
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
-  .shadow-lg {
-    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-sm {
