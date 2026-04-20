@@ -91,22 +91,29 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
         for amount, count, knp, typ in rows:
             amount = amount or 0
             count = count or 0
+            typ = (typ or "").strip()
 
+            # ---------- 026 ----------
             if knp == "026" and typ == "СЗ":
-                j5 = count
-                k5 = amount
-            elif knp == "094" and typ == "СЗ":
-                j6 = count
-                k6 = amount
+                j5 += count
+                k5 += amount
+            elif knp == "026" and typ == "О":
+                h5 += count
+                i5 += amount
             elif knp == "026":
-                d5 = count
-                e5 = amount
-            elif knp == "094" and typ is None:
-                f6 = count
-                g6 = amount
+                d5 += count
+                e5 += amount
+
+            # ---------- 094 ----------
+            elif knp == "094" and typ == "СЗ":
+                j6 += count
+                k6 += amount
             elif knp == "094" and typ == "О":
-                h6 = count
-                i6 = amount
+                h6 += count
+                i6 += amount
+            elif knp == "094":
+                f6 += count
+                g6 += amount
 
     c5 = e5 + g5 + i5 + k5
     c6 = e6 + g6 + i6 + k6
@@ -306,22 +313,35 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
 
     if rows:
         for amount, count, knp, typ in rows:
+            amount = amount or 0
+            count = count or 0
+            typ = (typ or "").strip()
 
+            # ---------- 026 ----------
             if knp == "026" and typ == "СЗ":
-                ws[cell("J", 5)] = count
-                ws[cell("K", 5)] = amount
-            elif knp == "094" and typ == "СЗ":
-                ws[cell("J", 6)] = count
-                ws[cell("K", 6)] = amount
+                ws[cell("J", 5)] = (ws[cell("J", 5)].value or 0) + count
+                ws[cell("K", 5)] = (ws[cell("K", 5)].value or 0) + amount
+
+            elif knp == "026" and typ == "О":
+                ws[cell("H", 5)] = (ws[cell("H", 5)].value or 0) + count
+                ws[cell("I", 5)] = (ws[cell("I", 5)].value or 0) + amount
+
             elif knp == "026":
-                ws[cell("D",5)] = count
-                ws[cell("E",5)] = amount
-            elif knp == "094" and typ is None:
-                ws[cell("F",6)] = count
-                ws[cell("G",6)] = amount
+                ws[cell("D", 5)] = (ws[cell("D", 5)].value or 0) + count
+                ws[cell("E", 5)] = (ws[cell("E", 5)].value or 0) + amount
+
+            # ---------- 094 ----------
+            elif knp == "094" and typ == "СЗ":
+                ws[cell("J", 6)] = (ws[cell("J", 6)].value or 0) + count
+                ws[cell("K", 6)] = (ws[cell("K", 6)].value or 0) + amount
+
             elif knp == "094" and typ == "О":
-                ws[cell("H",6)] = count
-                ws[cell("I",6)] = amount
+                ws[cell("H", 6)] = (ws[cell("H", 6)].value or 0) + count
+                ws[cell("I", 6)] = (ws[cell("I", 6)].value or 0) + amount
+
+            elif knp == "094":
+                ws[cell("F", 6)] = (ws[cell("F", 6)].value or 0) + count
+                ws[cell("G", 6)] = (ws[cell("G", 6)].value or 0) + amount
 
     for row in ws[f"D{r(5)}:K{r(6)}"]:
         for c in row:

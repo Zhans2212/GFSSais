@@ -47,8 +47,16 @@ def build_order_report(rows):
     table_rows = [
         {
             "ttk": "026",
-            "total_count": agg["026"]["026"]["count"] + agg["026"]["026_sz"]["count"],
-            "total_amount": agg["026"]["026"]["amount"] + agg["026"]["026_sz"]["amount"],
+            "total_count": (
+                agg["026"]["026"]["count"]
+                + agg["026"]["026_sz"]["count"]
+                + agg["026"]["026_bt"]["count"]
+            ),
+            "total_amount": (
+                agg["026"]["026"]["amount"]
+                + agg["026"]["026_sz"]["amount"]
+                + agg["026"]["026_bt"]["amount"]
+            ),
             "part_026_count": agg["026"]["026"]["count"],
             "part_026_amount": agg["026"]["026"]["amount"],
             "part_094_count": 0,
