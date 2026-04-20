@@ -10,6 +10,41 @@ function refundsTable() {
     statusFilter: '1',
     typeFilter: 'any',
 
+    openFilter: null, // какой столбец сейчас открыт
+    columnFilters: {
+      sior_id: { op: 'contains', value: '' },
+      refer_in: { op: 'contains', value: '' },
+      bin: { op: 'contains', value: '' },
+      doc_nmb: { op: 'contains', value: '' },
+      doc_date: { op: 'contains', value: '' },
+      pay_sum: { op: 'contains', value: '' },
+      ret_sum: { op: 'contains', value: '' },
+      status: { op: 'contains', value: '' },
+      knp: { op: 'contains', value: '' },
+      code1c: { op: 'contains', value: '' },
+      type_payer: { op: 'contains', value: '' },
+      ret_date: { op: 'contains', value: '' },
+      recv_date: { op: 'contains', value: '' },
+      c1_doc_date: { op: 'contains', value: '' },
+    },
+
+    columns: [
+      { key: 'sior_id', label: '№' },
+      { key: 'refer_in', label: 'Референс' },
+      { key: 'bin', label: 'БИН отправ.' },
+      { key: 'doc_nmb', label: '№ плат.поруч.' },
+      { key: 'doc_date', label: 'Дата плат.' },
+      { key: 'pay_sum', label: 'Сумма платежа' },
+      { key: 'ret_sum', label: 'Сумма возврата' },
+      { key: 'status', label: 'Статус' },
+      { key: 'knp', label: 'КНП' },
+      { key: 'code1c', label: 'Тип возврата' },
+      { key: 'type_payer', label: 'Тип плательщика' },
+      { key: 'ret_date', label: 'Дата ООП' },
+      { key: 'recv_date', label: 'Дата ГФСС' },
+      { key: 'c1_doc_date', label: 'Дата 1С' },
+    ],
+
     accessToApprove: false,
     acceptRadio: 'all',
 
@@ -149,14 +184,6 @@ function refundsTable() {
       }
     },
 
-    getToday() {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      return `${day}.${month}.${year}`;
-    },
-
     // Получить дату из таблицы возвратов для формирования отчета
     getReportDateFromRefunds() {
       const sourceRow = this.filteredRows?.[0] || this.rows?.[0];
@@ -178,27 +205,47 @@ function refundsTable() {
       return `${day}.${month}.${year}`; // 09.04.2026
     },
 
-    // Фильтры по статусу и типу возврата
+    // Фильтры
+    toggleFilter(col) {
+      this.openFilter = this.openFilter === col ? null : col;
+    },
+
+    closeFilters() {
+      this.openFilter = null;
+    },
+
+    applyFilter(cellValue, filter) {
+      if (!filter || !filter.value) return true;
+
+      const val = String(cellValue ?? '').toLowerCase();
+      const search = String(filter.value).toLowerCase();
+
+      switch (filter.op) {
+        case 'eq': return val === search;
+        case 'neq': return val !== search;
+        case 'starts': return val.startsWith(search);
+        case 'ends': return val.endsWith(search);
+        case 'contains': return val.includes(search);
+        case 'not_contains': return !val.includes(search);
+        default: return true;
+      }
+    },
+
     get filteredRows() {
       return this.rows.filter(row => {
+
+        const matchesColumns = Object.entries(this.columnFilters).every(([key, filter]) => {
+          return this.applyFilter(row[key], filter);
+        });
+
         const rowStatus = String(row.status ?? '');
-
-        const searchValue = this.search.trim().toLowerCase();
-        const sior_id = String(row.sior_id ?? '').toLowerCase();
-        const refer = String(row.refer_in ?? '').toLowerCase();
-        const bin = String(row.bin ?? '').toLowerCase();
-        const type_payer = String(row.type_payer ?? '').toUpperCase();
-        const code1c = String(row.code1c ?? '').toUpperCase();
-
-        const matchesSearch =
-          !searchValue ||
-          sior_id.includes(searchValue) ||
-          refer.includes(searchValue) ||
-          bin.includes(searchValue);
 
         const matchesStatus =
           this.statusFilter === 'all' ||
           rowStatus === this.statusFilter;
+
+        const type_payer = String(row.type_payer ?? '').toUpperCase();
+        const code1c = String(row.code1c ?? '').toUpperCase();
 
         const matchesType =
           this.typeFilter === 'any' ||
@@ -206,7 +253,7 @@ function refundsTable() {
           (this.typeFilter === 'СО' && code1c === 'СО') ||
           (this.typeFilter === 'ЕП' && code1c === 'ЕП');
 
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesColumns && matchesStatus && matchesType;
       });
     },
 
