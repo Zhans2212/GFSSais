@@ -316,13 +316,11 @@ function refundsTable() {
     },
 
     downloadExcel() {
-      const date = this.reportDate || this.getReportDateFromRefunds();
-      window.location.href = `/reports/get_report_excel?date=${encodeURIComponent(date)}`;
+      window.location.href = `/reports/get_report_excel`;
     },
 
     downloadPdf() {
-      const date = this.reportDate || this.getReportDateFromRefunds();
-      window.location.href = `/reports/get_report_pdf?date=${encodeURIComponent(date)}`;
+      window.location.href = `/reports/get_report_pdf`;
     },
   };
 }

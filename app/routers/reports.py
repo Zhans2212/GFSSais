@@ -191,76 +191,66 @@ async def accept_all(request: Request, typ: str = Query(), user=Depends(login_re
 @router.get("/get_report_excel")
 async def get_report_excel(
     request: Request,
-    date: str,
     user=Depends(login_required)
 ):
 
     user_name = user.masked_name
 
-    log.info("GET /get_report_excel requested, date=%s", date)
+    log.info("GET /get_report_excel requested by user=%s", user_name)
 
     if not user:
         log.warning("Unauthorized access to GET /get_report_excel")
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    log.info("Excel generation started by user=%s, date=%s", user_name, date)
+    log.info("Excel generation started by user=%s", user_name)
 
     try:
         approved_by = get_who_approved(PACKAGE_NAME)
-        rows = get_order_rows(date, PACKAGE_NAME)
+        rows = get_order_rows(PACKAGE_NAME)
 
         log.info(
-            "Excel source data loaded successfully for user=%s, date=%s, rows_count=%s",
+            "Excel source data loaded successfully for user=%s, rows_count=%s",
             user_name,
-            date,
             len(rows)
         )
 
         excel_file = rows_to_excel(rows, TODAY, user.fio, approved_by)
 
         log.info(
-            "Excel file created successfully for user=%s, date=%s, rows_count=%s",
+            "Excel file created successfully for user=%s, rows_count=%s",
             user_name,
-            date,
             len(rows)
         )
-
-        safe_date = date.replace(".", "_")
 
         return StreamingResponse(
             excel_file,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f'attachment; filename="report_{safe_date}.xlsx"'}
+            headers={"Content-Disposition": f'attachment; filename="report_{TODAY}.xlsx"'}
         )
 
     except Exception:
         log.exception(
-            "Failed to generate excel report for user=%s, date=%s",
+            "Failed to generate excel report for user=%s",
             user_name,
-            date
         )
         raise HTTPException(status_code=500, detail="Ошибка при формировании Excel-отчета")
 
 @router.get("/get_report_pdf")
 async def get_report_pdf(
     request: Request,
-    date: str = Query(default=datetime.today().strftime("%d.%m.%Y")),
     user=Depends(login_required)
 ):
-
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     approved_by = get_who_approved(PACKAGE_NAME)
-    rows = get_order_rows(date, PACKAGE_NAME)
+    rows = get_order_rows(PACKAGE_NAME)
     pdf_file = rows_to_pdf(rows, TODAY, user.fio, approved_by)
-
-    safe_date = date.replace(".", "_")
 
     return StreamingResponse(
         pdf_file,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'attachment; filename="report_{safe_date}.pdf"'
+            "Content-Disposition": f'attachment; filename="report_{TODAY}.pdf"'
         }
     )
