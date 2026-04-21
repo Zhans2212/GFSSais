@@ -238,8 +238,8 @@ function refundsTable() {
         const matchesType =
           this.typeFilter === 'any' ||
           (this.typeFilter === 'СЗ' && type_payer === 'СЗ') ||
-          (this.typeFilter === 'СО' && code1c === 'СО') ||
-          (this.typeFilter === 'ЕП' && code1c === 'ЕП');
+          (this.typeFilter === 'СО' && code1c === 'СО' && type_payer !== 'СЗ') ||
+          (this.typeFilter === 'ЕП' && code1c === 'ЕП' && type_payer !== 'СЗ');
 
         return matchesColumns && matchesStatus && matchesType;
       });
