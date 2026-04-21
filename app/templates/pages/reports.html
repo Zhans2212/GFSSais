@@ -81,7 +81,7 @@
               <path d="m21 21-4.3-4.3"></path>
             </g>
           </svg>
-          <input type="search" class="grow" placeholder="Поиск (№/референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1"/>
+          <input type="search" class="grow" placeholder="Поиск (№/референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1" disabled/>
         </label>
       </div>
 
@@ -110,7 +110,7 @@
             <template x-for="col in columns">
               <th @click="toggleFilter(col.key)" class="cursor-pointer relative">
                 <div class="flex items-center gap-1">
-                  <span x-text="col.label"></span>
+                  <span class="text-primary-content text-base" x-text="col.label"></span>
 
                   <span
                     @click.stop="isFilterActive(col.key) ? clearFilter(col.key) : toggleFilter(col.key)"

@@ -141,7 +141,7 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
 
         ["026", b5, format_kz(c5), d5, format_kz(e5), f5, format_kz(g5), h5, format_kz(i5), j5, format_kz(k5)],
         ["094", b6, format_kz(c6), d6, format_kz(e6), f6, format_kz(g6), h6, format_kz(i6), j6, format_kz(k6)],
-        ["", b7, f"{c7:,.2f}", "", "", "", "", "", "", "", ""],
+        ["", b7, format_kz(c7), "", "", "", "", "", "", "", ""],
     ]
 
     table = Table(
