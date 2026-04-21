@@ -56,7 +56,6 @@ function refundsTable() {
     reportLoading: false,
     reportError: '',
     reportRows: [],
-    reportDate: '',
     total: {},
 
     async init() {
@@ -138,13 +137,12 @@ function refundsTable() {
     },
 
     // ФОРМИРОВАНИЕ ОТЧЕТА ПОД ТАБЛИЦЕЙ
-    async loadReport(date) {
+    async loadReport() {
       this.reportLoading = true;
       this.reportError = '';
-      this.reportDate = date;
 
       try {
-        const response = await fetch(`/reports/order-data?date=${encodeURIComponent(this.reportDate)}`);
+        const response = await fetch(`/reports/order-data`);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -182,27 +180,6 @@ function refundsTable() {
       } finally {
         this.loading = false;
       }
-    },
-
-    // Получить дату из таблицы возвратов для формирования отчета
-    getReportDateFromRefunds() {
-      const sourceRow = this.filteredRows?.[0] || this.rows?.[0];
-      if (!sourceRow || !sourceRow.recv_date) return '';
-
-      if (this.statusFilter === '2') return this.formatRefundDate(sourceRow.recv_date);
-      return '';
-    },
-
-    formatRefundDate(value) {
-      if (!value) return '';
-
-      // ожидаемый формат: 09-04-2026 04:36:17
-      const datePart = String(value).split(' ')[0]; // 09-04-2026
-      const [day, month, year] = datePart.split('-');
-
-      if (!day || !month || !year) return '';
-
-      return `${day}.${month}.${year}`; // 09.04.2026
     },
 
     // Фильтры

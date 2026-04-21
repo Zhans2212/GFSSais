@@ -84,29 +84,25 @@ async def check_role(user=Depends(login_required)):
     return user.top_control == 2
 
 @router.get("/order-data")
-async def get_order_data(date: str, user=Depends(login_required)):
+async def get_order_data(user=Depends(login_required)):
     user_name = user.masked_name
 
     if user.top_control not in (1, 2):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if not date:
-        raise HTTPException(status_code=400, detail="Bad request")
-
     try:
-        rows = get_order_rows(date, PACKAGE_NAME)
+        rows = get_order_rows(PACKAGE_NAME)
 
         log.info("Got rows = %s", rows)
 
         result = build_order_report(rows)
 
         return {
-            "date": date,
             **result
         }
 
     except Exception:
-        log.exception("Failed report user=%s date=%s", user_name, date)
+        log.exception("Failed report 418 user=%s", user_name)
         raise HTTPException(status_code=500, detail="Ошибка формирования отчета")
 
 

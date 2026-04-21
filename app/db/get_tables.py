@@ -47,11 +47,11 @@ def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
     return persons
 
 
-def get_order_rows(report_date: str, package_name: str = "DASORP_TEST") -> list:
-    query = text(f"SELECT {package_name}.MANAGE.GET_ORDER(:date) FROM DUAL")
+def get_order_rows(package_name: str = "DASORP_TEST") -> list:
+    query = text(f"SELECT {package_name}.MANAGE.GET_ORDER() FROM DUAL")
 
     with engine.connect() as conn:
-        result = conn.execute(query, {"date": report_date})
+        result = conn.execute(query)
         row = result.fetchone()
 
         if not row or not row[0]:

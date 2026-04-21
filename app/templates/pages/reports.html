@@ -287,7 +287,7 @@
       <div class="mt-10">
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
           <div class="flex flex-wrap items-end gap-3">
-            <button class="btn btn-primary" type="button" @click="loadReport(getReportDateFromRefunds())" :disabled="reportLoading">
+            <button class="btn btn-primary" type="button" @click="loadReport()" :disabled="reportLoading">
               Отчет – 418
             </button>
           </div>
@@ -323,7 +323,7 @@
             <div>
               <div class="mb-3 text-sm opacity-80">
                 Дата отчета:
-                <b x-text="getReportDateFromRefunds()"></b>
+                <b></b>
               </div>
 
               <table class="table table-xs table-pin-rows w-xs border border-base-content/5
