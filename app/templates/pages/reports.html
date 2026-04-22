@@ -357,26 +357,38 @@
                 </thead>
 
                 <tbody class="text-base-content">
-                  <template x-for="row in reportRows" :key="row.ttk">
-                    <tr>
-                      <td x-text="row.ttk"></td>
-                      <td x-text="row.total_count"></td>
-                      <td x-text="formatAmount(row.total_amount)"></td>
-                      <td x-text="row.part_026_count"></td>
-                      <td x-text="formatAmount(row.part_026_amount)"></td>
-                      <td x-text="row.part_094_count"></td>
-                      <td x-text="formatAmount(row.part_094_amount)"></td>
-                      <td x-text="row.part_bt_count"></td>
-                      <td x-text="formatAmount(row.part_bt_amount)"></td>
-                      <td x-text="row.part_sz_count"></td>
-                      <td x-text="formatAmount(row.part_sz_amount)"></td>
-                    </tr>
-                  </template>
+                  <tr>
+                    <td x-text="reportRows[0]?.knp"></td>
+                    <td x-text="getRowTotal(reportRows[0]).cnt"></td>
+                    <td x-text="formatAmount(getRowTotal(reportRows[0]).sum)"></td>
+                    <td x-text="reportRows[0]?.cnt_so"></td>
+                    <td x-text="formatAmount(reportRows[0]?.sum_so)"></td>
+                    <td>0</td>
+                    <td>0,00</td>
+                    <td x-text="reportRows[0]?.cnt_ep"></td>
+                    <td x-text="formatAmount(reportRows[0]?.sum_ep)"></td>
+                    <td x-text="reportRows[0]?.cnt_sz"></td>
+                    <td x-text="formatAmount(reportRows[0]?.sum_sz)"></td>
+                  </tr>
+
+                  <tr>
+                    <td x-text="reportRows[1]?.knp"></td>
+                    <td x-text="getRowTotal(reportRows[1]).cnt"></td>
+                    <td x-text="formatAmount(getRowTotal(reportRows[1]).sum)"></td>
+                    <td>0</td>
+                    <td>0,00</td>
+                    <td x-text="reportRows[1]?.cnt_so"></td>
+                    <td x-text="formatAmount(reportRows[1]?.sum_so)"></td>
+                    <td x-text="reportRows[1]?.cnt_ep"></td>
+                    <td x-text="formatAmount(reportRows[1]?.sum_ep)"></td>
+                    <td x-text="reportRows[1]?.cnt_sz"></td>
+                    <td x-text="formatAmount(reportRows[1]?.sum_sz)"></td>
+                  </tr>
 
                   <tr class="font-bold bg-base-300">
-                    <td x-text="total.ttk || 'Барлығы'"></td>
-                    <td x-text="total.total_count || 0"></td>
-                    <td x-text="formatAmount(total.total_amount || 0)"></td>
+                    <td>Барлығы</td>
+                    <td x-text="getRowTotal(reportRows[0]).cnt + getRowTotal(reportRows[1]).cnt"></td>
+                    <td x-text="formatAmount(getRowTotal(reportRows[0]).sum + getRowTotal(reportRows[1]).sum)"></td>
                     <td></td>
                     <td></td>
                     <td></td>

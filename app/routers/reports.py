@@ -12,7 +12,6 @@ from app.db.get_tables import get_refunds, get_persons_by_sior, get_order_rows, 
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
-from app.utils.order_report_418 import build_order_report
 
 router = APIRouter()
 
@@ -88,22 +87,35 @@ async def get_order_data(user=Depends(login_required)):
     user_name = user.masked_name
 
     if user.top_control not in (1, 2):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        log.warning(
+            "Forbidden GET /reports/order-data by user=%s, top_control=%s",
+            user_name,
+            user.top_control
+        )
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/order-data")
+
+    log.info("GET /reports/order-data requested by user=%s", user_name)
 
     try:
-        rows = get_order_rows(PACKAGE_NAME)
+        order = get_order_rows(PACKAGE_NAME)
 
-        log.info("Got rows = %s", rows)
-
-        result = build_order_report(rows)
+        log.info(
+            "Sending order 418: count=%s, sample=%s",
+            len(order),
+            order[:2] if order else "EMPTY"
+        )
 
         return {
-            **result
+            "rows": order,
+            "count": len(order),
         }
 
     except Exception:
-        log.exception("Failed report 418 user=%s", user_name)
-        raise HTTPException(status_code=500, detail="Ошибка формирования отчета")
+        log.exception(
+            "Failed to load order 418 for user=%s",
+            user_name,
+        )
+        raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
 
 @router.get("/persons")

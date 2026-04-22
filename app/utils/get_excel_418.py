@@ -10,8 +10,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
-from app.utils.order_report_418 import format_kz
 
+def format_kz(number):
+    return f"{number:,.2f}".replace(",", " ").replace(".", ",")
 
 def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     buffer = BytesIO()

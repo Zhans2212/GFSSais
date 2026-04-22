@@ -56,7 +56,6 @@ function refundsTable() {
     reportLoading: false,
     reportError: '',
     reportRows: [],
-    total: {},
 
     async init() {
       await this.loadData();
@@ -152,11 +151,9 @@ function refundsTable() {
         console.log('REPORT DATA:', data);
 
         this.reportRows = Array.isArray(data.rows) ? data.rows : [];
-        this.total = data.total || {};
       } catch (error) {
         console.error('Ошибка загрузки отчета:', error);
         this.reportRows = [];
-        this.total = {};
         this.reportError = 'Не удалось загрузить данные отчета';
       } finally {
         this.reportLoading = false;
@@ -271,6 +268,13 @@ function refundsTable() {
 
     get endRow() {
       return Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
+    },
+
+    getRowTotal(row) {
+      return {
+        cnt: (row?.cnt_so || 0) + (row?.cnt_ep || 0) + (row?.cnt_sz || 0),
+        sum: (row?.sum_so || 0) + (row?.sum_ep || 0) + (row?.sum_sz || 0),
+      };
     },
 
     // Пагинация

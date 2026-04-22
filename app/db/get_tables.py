@@ -2,7 +2,9 @@ from sqlalchemy import text
 
 from app.db.engine import engine
 
-def _fetch_cursor_data(query: str, params: dict) -> list[dict]:
+def _fetch_cursor_data(query: str, params=None) -> list[dict]:
+    if params is None:
+        params = {}
     with engine.connect() as conn:
         result = conn.execute(text(query), params)
         row = result.fetchone()
@@ -56,20 +58,11 @@ def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
 
 
 def get_order_rows(package_name: str = "DASORP_TEST") -> list:
-    query = text(f"SELECT {package_name}.MANAGE.GET_ORDER() FROM DUAL")
+    query = f"""
+                SELECT {package_name}.MANAGE.GET_ORDER() FROM DUAL
+            """
 
-    with engine.connect() as conn:
-        result = conn.execute(query)
-        row = result.fetchone()
-
-        if not row or not row[0]:
-            return []
-
-        cursor = row[0]
-        try:
-            return cursor.fetchall()
-        finally:
-            cursor.close()
+    return _fetch_cursor_data(query)
 
 
 def get_who_approved(package_name: str = "DASORP_TEST"):
