@@ -14,6 +14,44 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 def format_kz(number):
     return f"{number:,.2f}".replace(",", " ").replace(".", ",")
 
+def normalize_rows(rows):
+    row_map = {
+        "026": {
+            "cnt_so": 0, "sum_so": 0,
+            "cnt_ep": 0, "sum_ep": 0,
+            "cnt_sz": 0, "sum_sz": 0,
+        },
+        "094": {
+            "cnt_so": 0, "sum_so": 0,
+            "cnt_ep": 0, "sum_ep": 0,
+            "cnt_sz": 0, "sum_sz": 0,
+        }
+    }
+
+    for r in rows or []:
+        knp = r.get("knp")
+        if knp not in row_map:
+            continue
+
+        for k in row_map[knp]:
+            row_map[knp][k] = r.get(k, 0) or 0
+
+    def total(r):
+        cnt = r["cnt_so"] + r["cnt_ep"] + r["cnt_sz"]
+        summ = r["sum_so"] + r["sum_ep"] + r["sum_sz"]
+        return cnt, summ
+
+    r026 = row_map["026"]
+    r094 = row_map["094"]
+
+    r026_total_cnt, r026_total_sum = total(r026)
+    r094_total_cnt, r094_total_sum = total(r094)
+    total_cnt =r026_total_cnt + r094_total_cnt
+    total_sum =r026_total_sum + r094_total_sum
+
+    return r026, r094, (r026_total_cnt, r026_total_sum, r094_total_cnt, r094_total_sum, total_cnt, total_sum)
+
+
 def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     buffer = BytesIO()
 
@@ -35,15 +73,6 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     )
 
     styles = getSampleStyleSheet()
-
-    normal_style = ParagraphStyle(
-        "NormalTNR",
-        parent=styles["Normal"],
-        fontName="TimesNewRoman",
-        fontSize=11,
-        leading=14,
-        alignment=TA_LEFT,
-    )
 
     italic_style = ParagraphStyle(
         "ItalicTNR",
@@ -72,9 +101,12 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
         alignment=TA_CENTER,
     )
 
-    elements = [Paragraph(date or "", italic_style), Spacer(1, 62), Paragraph("Тапсырыс", title_style), Spacer(1, 12)]
-
-    # --- HEADER ---
+    elements = [
+        Paragraph(date or "", italic_style),
+        Spacer(1, 62),
+        Paragraph("Тапсырыс", title_style),
+        Spacer(1, 12),
+    ]
 
     header_text = (
         "«Мемлекеттік әлеуметтік сақтандыру қоры» акционерлік қоғамының "
@@ -86,46 +118,7 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
     elements.append(Paragraph(header_text, center_style))
     elements.append(Spacer(1, 26))
 
-    # --- DATA ---
-    d5 = e5 = f5 = g5 = h5 = i5 = j5 = k5 = 0
-    d6 = e6 = f6 = g6 = h6 = i6 = j6 = k6 = 0
-
-    if rows:
-        for amount, count, knp, typ in rows:
-            amount = amount or 0
-            count = count or 0
-            typ = (typ or "").strip()
-
-            # ---------- 026 ----------
-            if knp == "026" and typ == "СЗ":
-                j5 += count
-                k5 += amount
-            elif knp == "026" and typ == "О":
-                h5 += count
-                i5 += amount
-            elif knp == "026":
-                d5 += count
-                e5 += amount
-
-            # ---------- 094 ----------
-            elif knp == "094" and typ == "СЗ":
-                j6 += count
-                k6 += amount
-            elif knp == "094" and typ == "О":
-                h6 += count
-                i6 += amount
-            elif knp == "094":
-                f6 += count
-                g6 += amount
-
-    c5 = e5 + g5 + i5 + k5
-    c6 = e6 + g6 + i6 + k6
-
-    b5 = d5 + f5 + h5 + j5
-    b6 = d6 + f6 + h6 + j6
-
-    b7 = b5 + b6
-    c7 = c5 + c6
+    r026, r094, (r026_total_cnt, r026_total_sum, r094_total_cnt, r094_total_sum, total_cnt, total_sum) = normalize_rows(rows)
 
     data = [
         ["ТТК", "Барлығы", "", "Соның ішінде", "", "", "", "", "", "", ""],
@@ -140,35 +133,47 @@ def rows_to_pdf(rows=None, date=None, fio=None, approved_by=None):
          "Адам саны", "Сома (теңге)",
          "Адам саны", "Сома (теңге)"],
 
-        ["026", b5, format_kz(c5), d5, format_kz(e5), f5, format_kz(g5), h5, format_kz(i5), j5, format_kz(k5)],
-        ["094", b6, format_kz(c6), d6, format_kz(e6), f6, format_kz(g6), h6, format_kz(i6), j6, format_kz(k6)],
-        ["", b7, format_kz(c7), "", "", "", "", "", "", "", ""],
+        [
+            "026",
+            r026_total_cnt, format_kz(r026_total_sum),
+            r026["cnt_so"], format_kz(r026["sum_so"]),
+            0, "0,00",
+            r026["cnt_ep"], format_kz(r026["sum_ep"]),
+            r026["cnt_sz"], format_kz(r026["sum_sz"]),
+        ],
+        [
+            "094",
+            r094_total_cnt, format_kz(r094_total_sum),
+            0, "0,00",
+            r094["cnt_so"], format_kz(r094["sum_so"]),
+            r094["cnt_ep"], format_kz(r094["sum_ep"]),
+            r094["cnt_sz"], format_kz(r094["sum_sz"]),
+        ],
+        [
+            "",
+            total_cnt, format_kz(total_sum),
+            "", "", "", "", "", "", "", ""
+        ],
     ]
 
-    table = Table(
-        data,
-        repeatRows=1,
-        colWidths=[40, 60, 80, 60, 80, 60, 80, 60, 80, 60, 80]
-    )
+    table = Table(data, repeatRows=1,
+                  colWidths=[40, 60, 80, 60, 80, 60, 80, 60, 80, 60, 80])
 
     table.setStyle(TableStyle([
-        # --- ОБЪЕДИНЕНИЯ ---
-        ("SPAN", (0, 0), (0, 2)),  # ТТК
-        ("SPAN", (1, 0), (2, 0)),  # Барлығы
-        ("SPAN", (3, 0), (10, 0)),  # Соның ішінде
+        ("SPAN", (0, 0), (0, 2)),
+        ("SPAN", (1, 0), (2, 0)),
+        ("SPAN", (3, 0), (10, 0)),
 
-        ("SPAN", (3, 1), (4, 1)),  # 026
-        ("SPAN", (5, 1), (6, 1)),  # 094
-        ("SPAN", (7, 1), (8, 1)),  # БТ
-        ("SPAN", (9, 1), (10, 1)),  # ӨЖҚ
+        ("SPAN", (3, 1), (4, 1)),
+        ("SPAN", (5, 1), (6, 1)),
+        ("SPAN", (7, 1), (8, 1)),
+        ("SPAN", (9, 1), (10, 1)),
 
-        ("SPAN", (1, 1), (1, 2)),  # Адам саны (Барлығы)
-        ("SPAN", (2, 1), (2, 2)),  # Сома (Барлығы)
+        ("SPAN", (1, 1), (1, 2)),
+        ("SPAN", (2, 1), (2, 2)),
 
-        # --- СТИЛЬ ---
         ("FONTNAME", (0, 0), (-1, -1), "TimesNewRoman"),
         ("FONTNAME", (0, 0), (-1, 2), "TimesNewRoman-Bold"),
-
         ("FONTSIZE", (0, 0), (-1, -1), 10),
 
         ("GRID", (0, 0), (-1, -1), 1, colors.black),
@@ -313,63 +318,42 @@ def rows_to_excel(rows=None, date=None, fio=None, approved_by=None):
         ws[cell(col, row)].number_format = '# ### ### ##0.00'
 
     # -------- DATA --------
+    r026, r094, (r026_total_cnt, r026_total_sum, r094_total_cnt, r094_total_sum, total_cnt, total_sum) = normalize_rows(rows)
 
-    if rows:
-        for amount, count, knp, typ in rows:
-            amount = amount or 0
-            count = count or 0
-            typ = (typ or "").strip()
+    # ---------- 026 ----------
+    ws[cell("B", 5)] = r026_total_cnt
+    ws[cell("C", 5)] = r026_total_sum
 
-            # ---------- 026 ----------
-            if knp == "026" and typ == "СЗ":
-                ws[cell("J", 5)] = (ws[cell("J", 5)].value or 0) + count
-                ws[cell("K", 5)] = (ws[cell("K", 5)].value or 0) + amount
+    ws[cell("D", 5)] = r026["cnt_so"]
+    ws[cell("E", 5)] = r026["sum_so"]
 
-            elif knp == "026" and typ == "О":
-                ws[cell("H", 5)] = (ws[cell("H", 5)].value or 0) + count
-                ws[cell("I", 5)] = (ws[cell("I", 5)].value or 0) + amount
+    ws[cell("H", 5)] = r026["cnt_ep"]
+    ws[cell("I", 5)] = r026["sum_ep"]
 
-            elif knp == "026":
-                ws[cell("D", 5)] = (ws[cell("D", 5)].value or 0) + count
-                ws[cell("E", 5)] = (ws[cell("E", 5)].value or 0) + amount
+    ws[cell("J", 5)] = r026["cnt_sz"]
+    ws[cell("K", 5)] = r026["sum_sz"]
 
-            # ---------- 094 ----------
-            elif knp == "094" and typ == "СЗ":
-                ws[cell("J", 6)] = (ws[cell("J", 6)].value or 0) + count
-                ws[cell("K", 6)] = (ws[cell("K", 6)].value or 0) + amount
+    # ---------- 094 ----------
+    ws[cell("B", 6)] = r094_total_cnt
+    ws[cell("C", 6)] = r094_total_sum
 
-            elif knp == "094" and typ == "О":
-                ws[cell("H", 6)] = (ws[cell("H", 6)].value or 0) + count
-                ws[cell("I", 6)] = (ws[cell("I", 6)].value or 0) + amount
+    ws[cell("F", 6)] = r094["cnt_so"]
+    ws[cell("G", 6)] = r094["sum_so"]
 
-            elif knp == "094":
-                ws[cell("F", 6)] = (ws[cell("F", 6)].value or 0) + count
-                ws[cell("G", 6)] = (ws[cell("G", 6)].value or 0) + amount
+    ws[cell("H", 6)] = r094["cnt_ep"]
+    ws[cell("I", 6)] = r094["sum_ep"]
+
+    ws[cell("J", 6)] = r094["cnt_sz"]
+    ws[cell("K", 6)] = r094["sum_sz"]
+
+    # ---------- total ----------
+    ws[cell("B", 7)] = total_cnt
+    ws[cell("C", 7)] = total_sum
 
     for row in ws[f"D{r(5)}:K{r(6)}"]:
         for c in row:
             if c.value is None:
                 c.value = 0
-    # -------- SUM FUNCTION --------
-
-    def s(coords):
-        return sum(ws[cell(c, r)].value or 0 for c, r in coords)
-
-    ws[cell("C", 5)] = s([("E", 5), ("G", 5), ("I", 5), ("K", 5)])
-    ws[cell("C", 6)] = s([("E", 6), ("G", 6), ("I", 6), ("K", 6)])
-
-    ws[cell("B", 5)] = s([("D", 5), ("F", 5), ("H", 5), ("J", 5)])
-    ws[cell("B", 6)] = s([("D", 6), ("F", 6), ("H", 6), ("J", 6)])
-
-    ws[cell("C", 7)] = s([
-        ("E", 5), ("G", 5), ("I", 5), ("K", 5),
-        ("E", 6), ("G", 6), ("I", 6), ("K", 6)
-    ])
-
-    ws[cell("B", 7)] = s([
-        ("D", 5), ("F", 5), ("H", 5), ("J", 5),
-        ("D", 6), ("F", 6), ("H", 6), ("J", 6)
-    ])
 
     ws.merge_cells(f"{cell('A',10)}:{cell('K',10)}")
     ws[cell("A",10)] = f'«МӘСҚ» АҚ Басқарма Төрағасының орынбасары: __________________ {approved_by.get("fio")}'

@@ -56,6 +56,8 @@ function refundsTable() {
     reportLoading: false,
     reportError: '',
     reportRows: [],
+    row026: null,
+    row094: null,
 
     async init() {
       await this.loadData();
@@ -151,6 +153,8 @@ function refundsTable() {
         console.log('REPORT DATA:', data);
 
         this.reportRows = Array.isArray(data.rows) ? data.rows : [];
+        this.row026 = this.reportRows.find(r => r.knp === '026')
+        this.row094 = this.reportRows.find(r => r.knp === '094')
       } catch (error) {
         console.error('Ошибка загрузки отчета:', error);
         this.reportRows = [];
@@ -160,6 +164,14 @@ function refundsTable() {
       }
     },
 
+    getRowTotal(row) {
+      return {
+        cnt: (row?.cnt_so || 0) + (row?.cnt_ep || 0) + (row?.cnt_sz || 0),
+        sum: (row?.sum_so || 0) + (row?.sum_ep || 0) + (row?.sum_sz || 0),
+      };
+    },
+
+    // ОДОБРИТЬ ЗАЯВКИ
     async acceptAll() {
       this.loading = true;
 
@@ -268,13 +280,6 @@ function refundsTable() {
 
     get endRow() {
       return Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
-    },
-
-    getRowTotal(row) {
-      return {
-        cnt: (row?.cnt_so || 0) + (row?.cnt_ep || 0) + (row?.cnt_sz || 0),
-        sum: (row?.sum_so || 0) + (row?.sum_ep || 0) + (row?.sum_sz || 0),
-      };
     },
 
     // Пагинация
