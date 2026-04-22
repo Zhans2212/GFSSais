@@ -143,7 +143,7 @@ function refundsTable() {
       this.reportError = '';
 
       try {
-        const response = await fetch(`/reports/order-data`);
+        const response = await fetch(`/reports/418-data`);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);

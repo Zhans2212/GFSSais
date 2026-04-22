@@ -57,9 +57,9 @@ def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
     return persons
 
 
-def get_order_rows(package_name: str = "DASORP_TEST") -> list:
+def get_418_rows(package_name: str = "DASORP_TEST") -> list:
     query = f"""
-                SELECT {package_name}.MANAGE.GET_ORDER() FROM DUAL
+                SELECT {package_name}.MANAGE.GET_418_INFO() FROM DUAL
             """
 
     return _fetch_cursor_data(query)

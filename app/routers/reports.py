@@ -8,7 +8,7 @@ from starlette.responses import StreamingResponse
 
 from app.config import templates, PACKAGE_NAME
 from app.core.security import login_required
-from app.db.get_tables import get_refunds, get_persons_by_sior, get_order_rows, get_who_approved
+from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
@@ -82,22 +82,22 @@ async def check_role(user=Depends(login_required)):
              user.masked_name, user.top_control, user.top_control == 2)
     return user.top_control == 2
 
-@router.get("/order-data")
-async def get_order_data(user=Depends(login_required)):
+@router.get("/418-data")
+async def get_418_data(user=Depends(login_required)):
     user_name = user.masked_name
 
     if user.top_control not in (1, 2):
         log.warning(
-            "Forbidden GET /reports/order-data by user=%s, top_control=%s",
+            "Forbidden GET /reports/418-data by user=%s, top_control=%s",
             user_name,
             user.top_control
         )
-        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/order-data")
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/418-data")
 
-    log.info("GET /reports/order-data requested by user=%s", user_name)
+    log.info("GET /reports/418-data requested by user=%s", user_name)
 
     try:
-        order = get_order_rows(PACKAGE_NAME)
+        order = get_418_rows(PACKAGE_NAME)
 
         log.info(
             "Sending order 418: count=%s, sample=%s",
@@ -218,7 +218,7 @@ async def get_report_excel(
 
     try:
         approved_by = get_who_approved(PACKAGE_NAME)
-        rows = get_order_rows(PACKAGE_NAME)
+        rows = get_418_rows(PACKAGE_NAME)
 
         log.info(
             "Excel source data loaded successfully for user=%s, rows_count=%s",
@@ -256,7 +256,7 @@ async def get_report_pdf(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     approved_by = get_who_approved(PACKAGE_NAME)
-    rows = get_order_rows(PACKAGE_NAME)
+    rows = get_418_rows(PACKAGE_NAME)
     pdf_file = rows_to_pdf(rows, TODAY, user.fio, approved_by)
 
     return StreamingResponse(
