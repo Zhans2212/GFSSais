@@ -8,7 +8,7 @@ from starlette.responses import StreamingResponse
 
 from app.config import templates, PACKAGE_NAME
 from app.core.security import login_required
-from app.db.get_tables import get_refund_list, get_persons_by_sior, get_order_rows, get_who_approved
+from app.db.get_tables import get_refunds, get_persons_by_sior, get_order_rows, get_who_approved
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
@@ -49,7 +49,7 @@ async def get_reports_data(
     log.info("GET /reports/data requested by user=%s, status=%s", user_name, status)
 
     try:
-        refunds = get_refund_list(status, package_name=PACKAGE_NAME)
+        refunds = get_refunds(status, package_name=PACKAGE_NAME)
         # refunds = json.loads(json.dumps(refunds, default=float))
 
         log.info(

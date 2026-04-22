@@ -2,27 +2,35 @@ from sqlalchemy import text
 
 from app.db.engine import engine
 
-
-def get_refund_list(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
-    query = text(
-        f"SELECT {package_name}.MANAGE.GET_BY_STATUS(:status) AS refund_cursor FROM DUAL"
-    )
-
+def _fetch_cursor_data(query: str, params: dict) -> list[dict]:
     with engine.connect() as conn:
-        result = conn.execute(query, {"status": status})
+        result = conn.execute(text(query), params)
         row = result.fetchone()
 
-        refunds = []
+        if not row or not row[0]:
+            return []
 
-        if row and row[0]:
-            cursor = row[0]
-            try:
-                columns = [col[0].lower() for col in cursor.description]
-                refunds = [dict(zip(columns, r)) for r in cursor.fetchall()]
-            finally:
-                cursor.close()
+        cursor = row[0]
+        try:
+            columns = [col[0].lower() for col in cursor.description]
+            return [dict(zip(columns, r)) for r in cursor.fetchall()]
+        finally:
+            cursor.close()
 
-    return refunds
+
+def get_refunds(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
+    query = f"""
+            SELECT {package_name}.MANAGE.GET_BY_STATUS(:status) AS refund_cursor 
+            FROM DUAL
+        """
+    return _fetch_cursor_data(query, {"status": status})
+
+def get_refunds_list(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
+    query = f"""
+            SELECT {package_name}.MANAGE.GET_BY_STATUS_LIST(:status) AS refund_list_cursor 
+            FROM DUAL
+        """
+    return _fetch_cursor_data(query, {"status": status})
 
 
 def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):

@@ -10,7 +10,7 @@ function refundsTable() {
     statusFilter: '1',
     typeFilter: 'any',
 
-    openFilter: null, // какой столбец сейчас открыт
+    openFilter: null, // фильтр столбцов
     columnFilters: {
       sior_id: { op: 'contains', value: '' },
       refer_in: { op: 'contains', value: '' },
