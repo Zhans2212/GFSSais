@@ -10,7 +10,7 @@ PACKAGE_NAME = "DASORP"
 
 templates = Jinja2Templates(directory="app/templates")
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 templates.env.globals["version"] = VERSION
 
 def setup_static(app):

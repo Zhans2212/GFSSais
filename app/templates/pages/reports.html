@@ -7,7 +7,7 @@
   <div class="tabs tabs-border">
     <!-- FIRST TAB HERE -->
     <input type="radio" name="my_tabs_2" class="tab" aria-label="Возвраты СО" checked="checked"/>
-    <div class="tab-content border-base-300 bg-base-100 p-6 rounded-box" x-data="refundsTable()" x-init="init()">
+    <div class="tab-content border-base-300 bg-base-100 p-6 rounded-box" x-data="refundsTable()" x-init="init()" >
       <!-- Загрузка данных -->
       <div
         x-cloak
@@ -27,7 +27,7 @@
         <div class="grid grid-rows-2 gap-4 ml-2">
           <label class="select outline-none text-secondary-content">
             <span class="label">Статус</span>
-            <select x-model="statusFilter" @change="currentPage = 1; loadData()">
+            <select x-model="statusFilter" @change="currentPage = 1; loadData(); loadPersons()">
               <option value=1>1 - Документ принят</option>
               <option value=2>2 - Документ одобрен</option>
               <option value=3>3 - Документ передан в 1С</option>
@@ -101,6 +101,11 @@
           Кол-во заявок:
           <b x-text="filteredRows.length"></b>
         </span>
+        <span class="mx-2">|</span>
+        <span>
+          Кол-во людей:
+          <b x-text="filteredPersonsByMainTable.length"></b>
+        </span>
       </div>
 
       <!-- ТАБЛИЦА ВОЗВРАТЫ СО -->
@@ -165,7 +170,8 @@
             <template x-for="refund in paginatedRows">
               <tr
                 class="cursor-pointer"
-                @click="loadPersons(refund.sior_id)"
+                @click="selectedSiorID = refund.sior_id"
+                :class="selectedSiorID === refund.sior_id ? 'bg-primary/50' : ''"
               >
                 <td x-text="refund.sior_id"></td>
                 <td x-text="refund.refer_in"></td>
@@ -238,7 +244,7 @@
 
       <!-- ТАБЛИЦА ЛЮДИ -->
       <div class="overflow-x-auto h-auto bg-base-200 rounded-box shadow mt-10">
-        <table class="table table-xs table-pin-rows">
+        <table x-show="selectedSiorID" x-cloak class="table table-xs table-pin-rows">
           <thead>
             <tr class="text-secondary-content text-base bg-base-200">
               <th>№</th>
@@ -257,7 +263,7 @@
           </thead>
 
           <tbody class="text-base-content text-base">
-            <template x-for="person in personsRows">
+            <template x-for="person in selectPerson()">
               <tr>
                 <td x-text="person.sior_id">№</td>
                 <td x-text="person.doc_nmb">Плат поруч ГК</td>

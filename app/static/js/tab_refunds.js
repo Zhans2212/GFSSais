@@ -1,5 +1,7 @@
 function refundsTable() {
   return {
+    initialized: false,
+
     rows: [],
     loading: false,
     error: '',
@@ -51,7 +53,8 @@ function refundsTable() {
     personLoading: false,
     personError: '',
     personsRows: [],
-    siorID: '',
+    selectedSiorID: '',
+    filteredSiors: [],
 
     reportLoading: false,
     reportError: '',
@@ -60,8 +63,12 @@ function refundsTable() {
     row094: null,
 
     async init() {
-      await this.loadData();
-      await this.checkAccess();
+      if (this.initialized) return;
+      this.initialized = true;
+
+      await this.checkAccess()
+      await this.loadData()
+      await this.loadPersons()
     },
 
     async checkAccess() {
@@ -111,13 +118,12 @@ function refundsTable() {
     },
 
     // НАЙТИ ЛЮДЕЙ ПО НОМЕРУ ЗАЯВКИ
-    async loadPersons(sior_id) {
+    async loadPersons() {
       this.personLoading = true;
       this.personError = '';
-      this.siorID = sior_id;
 
       try {
-        const response = await fetch(`/reports/persons?sior_id=${encodeURIComponent(this.siorID)}`);
+        const response = await fetch(`/reports/persons?status=${encodeURIComponent(this.statusFilter)}`);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -135,6 +141,28 @@ function refundsTable() {
       } finally {
         this.personLoading = false;
       }
+    },
+
+    selectPerson() {
+      let result = this.personsRows;
+
+      if (this.selectedSiorID) {
+        result = result.filter(p => p.sior_id === this.selectedSiorID);
+      }
+
+      return result;
+    },
+
+    get filteredSiorIds() {
+      return new Set(this.filteredRows.map(row => row.sior_id));
+    },
+
+    get filteredPersonsByMainTable() {
+      const siorIds = this.filteredSiorIds;
+
+      return this.personsRows.filter(person =>
+        siorIds.has(person.sior_id)
+      );
     },
 
     // ФОРМИРОВАНИЕ ОТЧЕТА ПОД ТАБЛИЦЕЙ

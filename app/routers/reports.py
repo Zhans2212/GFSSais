@@ -8,7 +8,7 @@ from starlette.responses import StreamingResponse
 
 from app.config import templates, PACKAGE_NAME
 from app.core.security import login_required
-from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved
+from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved, get_refunds_list
 from app.db.update_tables import bulk_accept_all
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
@@ -32,7 +32,7 @@ async def home(request: Request, user=Depends(login_required)):
 
 @router.get("/data")
 async def get_reports_data(
-    status: int = Query(default=2),
+    status: int = Query(),
     user=Depends(login_required)
 ):
     user_name = user.masked_name
@@ -120,7 +120,7 @@ async def get_418_data(user=Depends(login_required)):
 
 @router.get("/persons")
 async def get_person(
-    sior_id: int,
+    status: int = Query(),
     user=Depends(login_required)
 ):
     user_name = user.masked_name
@@ -133,10 +133,10 @@ async def get_person(
         )
         raise HTTPException(status_code=403, detail="Forbidden to GET /reports/persons")
 
-    log.info("GET /reports/data requested by user=%s, sior_id=%s", user_name, sior_id)
+    log.info("GET /reports/persons requested by user=%s, status=%s", user_name, status)
 
     try:
-        persons = get_persons_by_sior(sior_id, package_name=PACKAGE_NAME)
+        persons = get_refunds_list(status, package_name=PACKAGE_NAME)
         log.info(
             "Sending persons: count=%s, sample=%s",
             len(persons),
@@ -145,14 +145,14 @@ async def get_person(
 
         return {
             "rows": persons,
-            "sior_id": sior_id,
+            "status": status,
             "count": len(persons),
         }
     except Exception:
         log.exception(
-            "Failed to load refunds data for user=%s, sior_id=%s",
+            "Failed to load refunds data for user=%s, status=%s",
             user_name,
-            sior_id
+            status
         )
         raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
 
