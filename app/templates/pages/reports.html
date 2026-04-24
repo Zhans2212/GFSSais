@@ -7,7 +7,7 @@
   <div class="tabs tabs-border">
     <!-- FIRST TAB HERE -->
     <input type="radio" name="my_tabs_2" class="tab" aria-label="Возвраты СО" checked="checked"/>
-    <div class="tab-content border-base-300 bg-base-100 p-6 rounded-box" x-data="refundsTable()" x-init="init()" >
+    <div class="tab-content border-base-300 bg-base-100 p-6 rounded-box" x-data="refundsTable()" x-init="init().catch(console.error)" >
       <!-- Загрузка данных -->
       <div
         x-cloak
@@ -27,7 +27,7 @@
         <div class="grid grid-rows-2 gap-4 ml-2">
           <label class="select outline-none text-secondary-content">
             <span class="label">Статус</span>
-            <select x-model="statusFilter" @change="currentPage = 1; loadData(); loadPersons()">
+            <select x-model="statusFilter" @change="currentPage = 1; loadData().catch(console.error); loadPersons().catch(console.error)">
               <option value=1>1 - Документ принят</option>
               <option value=2>2 - Документ одобрен</option>
               <option value=3>3 - Документ передан в 1С</option>
@@ -69,7 +69,7 @@
               <span class="label-text">СЗ</span>
             </label>
           </div>
-          <button class="btn btn-success" type="button" @click="acceptAll()">
+          <button class="btn btn-success" type="button" @click="acceptAll().catch(console.error)">
             Одобрить
           </button>
         </div>
@@ -295,7 +295,7 @@
       <div class="mt-10">
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
           <div class="flex flex-wrap items-end gap-3">
-            <button class="btn btn-primary" type="button" @click="loadReport()" :disabled="reportLoading">
+            <button class="btn btn-primary" type="button" @click="loadReport().catch(console.error)" :disabled="reportLoading">
               Отчет – 418
             </button>
           </div>
