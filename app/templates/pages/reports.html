@@ -23,11 +23,11 @@
 
 
       <!-- ФИЛЬТРЫ для "Возвраты СО" -->
-      <div class="flex flex-wrap justify-between items-end gap-4 mb-5">
-        <div class="grid grid-rows-2 gap-4 ml-2">
+      <div class="grid grid-cols-3 gap-6 ml-2 mr-2">
+        <div class="grid grid-rows-2 gap-4">
           <label class="select outline-none text-secondary-content">
             <span class="label">Статус</span>
-            <select x-model="statusFilter" @change="currentPage = 1; loadData().catch(console.error); loadPersons().catch(console.error)">
+            <select x-model="statusFilter" @change="currentPage = 1; resetFilters().catch(console.error); loadData().catch(console.error); loadPersons().catch(console.error)">
               <option value=1>1 - Документ принят</option>
               <option value=2>2 - Документ одобрен</option>
               <option value=3>3 - Документ передан в 1С</option>
@@ -47,7 +47,7 @@
           </label>
         </div>
 
-        <div x-show="canApprove" x-cloak class="grid grid-rows-2 gap-4 ml-2">
+        <div x-show="canApprove" x-cloak class="flex flex-col gap-4 items-center col-start-2">
           <div class="flex gap-4">
             <label class="label cursor-pointer gap-2">
               <input type="radio" name="type" class="radio" value="all" x-model="acceptRadio" checked />
@@ -74,15 +74,48 @@
           </button>
         </div>
 
-        <label class="input outline-none text-secondary-content">
-          <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </g>
-          </svg>
-          <input type="search" class="grow" placeholder="Поиск (№/референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1" disabled/>
-        </label>
+        <div class="grid grid-rows-3 gap-2 w-full justify-items-end col-start-3" x-show="canSeeFilters" x-cloak>
+          <!-- № заявки -->
+          <div class="form-control flex gap-2">
+            <label class="label">
+              <span class="label-text text-base">№ заявки:</span>
+            </label>
+            <input type="text"
+                   placeholder=""
+                   class="input input-bordered w-40 h-8"
+                   x-model="filters.sior_id">
+          </div>
+
+          <!-- Референс -->
+          <div class="form-control flex gap-2">
+            <label class="label">
+              <span class="label-text text-base">Референс:</span>
+            </label>
+            <input type="text"
+                   placeholder=""
+                   class="input input-bordered w-40 h-8"
+                   x-model="filters.refer_in">
+          </div>
+
+          <div class="flex justify-end">
+            <button class="btn btn-ghost w-20 h-8" @click="resetFilters().catch(console.error)">
+              Очистить
+            </button>
+            <button class="btn btn-primary w-25 h-10" @click="applyFilters().catch(console.error)" :disabled="!filters">
+              Применить
+            </button>
+          </div>
+        </div>
+
+<!--        <label class="input outline-none text-secondary-content">-->
+<!--          <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">-->
+<!--            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">-->
+<!--              <circle cx="11" cy="11" r="8"></circle>-->
+<!--              <path d="m21 21-4.3-4.3"></path>-->
+<!--            </g>-->
+<!--          </svg>-->
+<!--          <input type="search" class="grow" placeholder="Поиск (№/референс/БИН)" x-model.debounce.300ms="search" @input="currentPage = 1" disabled/>-->
+<!--        </label>-->
       </div>
 
       <!-- ПОДСЧЕТ ДАННЫХ ВОЗВРАТОВ -->

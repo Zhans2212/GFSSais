@@ -62,6 +62,11 @@ function refundsTable() {
     row026: null,
     row094: null,
 
+    filters: {
+      sior_id: '',
+      refer_in: '',
+    },
+
     async init() {
       if (this.initialized) return;
       this.initialized = true;
@@ -91,7 +96,7 @@ function refundsTable() {
       return this.accessToApprove && this.statusFilter === '1';
     },
 
-    async loadData() {
+    async loadData(filters = null) {
       this.loading = true;
       this.error = '';
 
@@ -358,6 +363,72 @@ function refundsTable() {
 
     downloadPdf() {
       window.location.href = `/reports/get_report_pdf`;
+    },
+
+    get canSeeFilters() {
+      return this.statusFilter !== '1' && this.statusFilter !== '2';
+    },
+
+    async loadFilteredData(filters = null) {
+      this.loading = true;
+      this.error = '';
+
+      try {
+        const response = await fetch(`/reports/data1c?status=${encodeURIComponent(this.statusFilter)}`, {method: 'POST',
+                                                                           headers: {'Content-Type': 'application/json'},
+                                                                           body: JSON.stringify(filters)
+                                                                           });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        if (response.status === 422) {
+          const err = await response.json();
+          this.error = 'Обязательные поля не заполнены';
+          return;
+        }
+
+        const data = await response.json();
+
+        console.log('DATA:', data);
+
+        this.rows = Array.isArray(data.rows) ? data.rows : [];
+        this.currentPage = 1;
+
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        this.rows = [];
+        this.error = 'Не удалось загрузить данные';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async applyFilters() {
+      const cleaned = Object.fromEntries(
+        Object.entries(this.filters).filter(
+          ([_, v]) => v !== '' && v !== null
+        )
+      );
+
+      console.log('Фильтры:', cleaned);
+
+      await this.loadFilteredData(cleaned);
+    },
+
+    async resetFilters() {
+      this.filters = {
+        sicid: '',
+        pay_date: '',
+        p_rnn: '',
+        knp: '',
+        sum_from: '',
+        sum_to: '',
+        period: ''
+      };
+
+      this.rows = []
     },
   };
 }

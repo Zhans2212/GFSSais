@@ -8,8 +8,10 @@ from starlette.responses import StreamingResponse
 
 from app.config import templates, PACKAGE_NAME
 from app.core.security import login_required
-from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved, get_refunds_list
+from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved, get_refunds_list, \
+    get_refunds_by_filter
 from app.db.update_tables import bulk_accept_all
+from app.models.refund_filters_model import FilterParams
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
 
@@ -49,7 +51,6 @@ async def get_reports_data(
 
     try:
         refunds = get_refunds(status, package_name=PACKAGE_NAME)
-        # refunds = json.loads(json.dumps(refunds, default=float))
 
         log.info(
             "Sending refunds: count=%s, sample=%s",
@@ -65,6 +66,46 @@ async def get_reports_data(
     except Exception:
         log.exception(
             "Failed to load refunds data for user=%s, status=%s",
+            user_name,
+            status
+        )
+        raise HTTPException(status_code=500, detail="Ошибка при загрузке данных")
+
+@router.post("/data1c")
+async def get_reports_data(
+    filters: FilterParams,
+    status: int = Query(),
+    user=Depends(login_required)
+):
+    user_name = user.masked_name
+
+    if user.top_control != 1 and user.top_control != 2:
+        log.warning(
+            "Forbidden GET /reports/data1c by user=%s, top_control=%s",
+            user_name,
+            user.top_control
+        )
+        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/data1c")
+
+    log.info("GET /reports/data1c requested by user=%s, status=%s", user_name, status)
+
+    try:
+        refunds = get_refunds_by_filter(**filters.model_dump(exclude_none=True), package_name=PACKAGE_NAME)
+
+        log.info(
+            "Sending refunds: count=%s, sample=%s",
+            len(refunds),
+            refunds[:2] if refunds else "EMPTY"
+        )
+
+        return {
+            "rows": refunds,
+            "status": status,
+            "count": len(refunds),
+        }
+    except Exception:
+        log.exception(
+            "Failed to load refunds data1c for user=%s, status=%s",
             user_name,
             status
         )
