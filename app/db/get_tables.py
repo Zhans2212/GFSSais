@@ -2,6 +2,7 @@ import oracledb
 import json
 from sqlalchemy import text
 
+from app.config import PACKAGE_NAME
 from app.db.engine import engine
 from app.utils.logger import log
 
@@ -56,14 +57,15 @@ def _call_proc_with_cursor(proc_name: str, params: dict) -> list[dict]:
         conn.close()
 
 
-def get_refunds(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
+def get_refunds(status: int) -> list[dict]:
     query = f"""
-            SELECT {package_name}.MANAGE.GET_BY_STATUS(:status) AS refund_cursor 
+            SELECT {PACKAGE_NAME}.MANAGE.GET_BY_STATUS(:status) AS refund_cursor 
             FROM DUAL
         """
     return _fetch_cursor_data(query, {"status": status})
 
-def get_refunds_by_filter(package_name: str = "DASORP_TEST", **filters) -> list[dict]:
+
+def get_refunds_by_filter(**filters) -> list[dict]:
     clean = {k: v for k, v in filters.items() if v is not None}
     if "date_from" in clean:
         clean["date_from"] = clean["date_from"].isoformat()
@@ -71,23 +73,23 @@ def get_refunds_by_filter(package_name: str = "DASORP_TEST", **filters) -> list[
     log.info("CLEAN FILTERS: %s", clean)
 
     return _call_proc_with_cursor(
-        f"{package_name}.MANAGE.GET_BY_FILTER",
+        f"{PACKAGE_NAME}.MANAGE.GET_BY_FILTER",
         {
             "p_filter": json.dumps(clean, ensure_ascii=False)
         }
     )
 
-def get_refunds_list(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
+def get_refunds_list(status: int) -> list[dict]:
     query = f"""
-            SELECT {package_name}.MANAGE.GET_BY_STATUS_LIST(:status) AS refund_list_cursor 
+            SELECT {PACKAGE_NAME}.MANAGE.GET_BY_STATUS_LIST(:status) AS refund_list_cursor 
             FROM DUAL
         """
     return _fetch_cursor_data(query, {"status": status})
 
 
-def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
+def get_persons_by_sior(sior_id: int):
     query = text(
-        f"SELECT {package_name}.MANAGE.GET_ORDER_INFO(:sior_id) AS person_cursor FROM DUAL"
+        f"SELECT {PACKAGE_NAME}.MANAGE.GET_ORDER_INFO(:sior_id) AS person_cursor FROM DUAL"
     )
 
     with engine.connect() as conn:
@@ -107,15 +109,15 @@ def get_persons_by_sior(sior_id: int, package_name: str = "DASORP_TEST"):
     return persons
 
 
-def get_418_rows(package_name: str = "DASORP_TEST") -> list:
+def get_418_rows() -> list:
     query = f"""
-                SELECT {package_name}.MANAGE.GET_418_INFO() FROM DUAL
+                SELECT {PACKAGE_NAME}.MANAGE.GET_418_INFO() FROM DUAL
             """
 
     return _fetch_cursor_data(query)
 
 
-def get_who_approved(package_name: str = "DASORP_TEST"):
+def get_who_approved():
     conn = engine.raw_connection()
     cursor = conn.cursor()
 
@@ -124,7 +126,7 @@ def get_who_approved(package_name: str = "DASORP_TEST"):
         fio = cursor.var(str)
 
         cursor.callproc(
-            f"{package_name}.MANAGE.GET_PASSPORT",
+            f"{PACKAGE_NAME}.MANAGE.GET_PASSPORT",
             [post, fio]
         )
 

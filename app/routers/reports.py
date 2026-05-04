@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
-from app.config import templates, PACKAGE_NAME
+from app.config import templates
 from app.core.security import login_required
 from app.db.get_tables import get_refunds, get_persons_by_sior, get_418_rows, get_who_approved, get_refunds_list, \
     get_refunds_by_filter
@@ -50,7 +50,7 @@ async def get_reports_data(
     log.info("GET /reports/data requested by user=%s, status=%s", user_name, status)
 
     try:
-        refunds = get_refunds(status, package_name=PACKAGE_NAME)
+        refunds = get_refunds(status)
 
         log.info(
             "Sending refunds: count=%s, sample=%s",
@@ -91,7 +91,7 @@ async def get_reports_data(
 
     try:
         log.info("FILTERS: %s", filters)
-        refunds = get_refunds_by_filter(**filters.model_dump(exclude_none=True), package_name=PACKAGE_NAME)
+        refunds = get_refunds_by_filter(**filters.model_dump(exclude_none=True))
 
         log.info(
             "Sending refunds: count=%s, sample=%s",
@@ -139,7 +139,7 @@ async def get_418_data(user=Depends(login_required)):
     log.info("GET /reports/418-data requested by user=%s", user_name)
 
     try:
-        order = get_418_rows(PACKAGE_NAME)
+        order = get_418_rows()
 
         log.info(
             "Sending order 418: count=%s, sample=%s",
@@ -178,7 +178,7 @@ async def get_person(
     log.info("GET /reports/persons requested by user=%s, status=%s", user_name, status)
 
     try:
-        persons = get_refunds_list(status, package_name=PACKAGE_NAME)
+        persons = get_refunds_list(status)
         log.info(
             "Sending persons: count=%s, sample=%s",
             len(persons),
@@ -228,8 +228,7 @@ async def accept_all(request: Request, typ: str = Query(), user=Depends(login_re
         bulk_accept_all(
             typ,
             user.post,
-            user.masked_name,
-            package_name=PACKAGE_NAME
+            user.masked_name
         )
 
         return {"ok": True}
@@ -259,8 +258,8 @@ async def get_report_excel(
     log.info("Excel generation started by user=%s", user_name)
 
     try:
-        approved_by = get_who_approved(PACKAGE_NAME)
-        rows = get_418_rows(PACKAGE_NAME)
+        approved_by = get_who_approved()
+        rows = get_418_rows()
 
         log.info(
             "Excel source data loaded successfully for user=%s, rows_count=%s",
@@ -297,8 +296,8 @@ async def get_report_pdf(
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    approved_by = get_who_approved(PACKAGE_NAME)
-    rows = get_418_rows(PACKAGE_NAME)
+    approved_by = get_who_approved()
+    rows = get_418_rows()
     pdf_file = rows_to_pdf(rows, TODAY, user.fio, approved_by)
 
     return StreamingResponse(
