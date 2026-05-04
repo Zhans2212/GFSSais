@@ -65,6 +65,9 @@ def get_refunds(status: int, package_name: str = "DASORP_TEST") -> list[dict]:
 
 def get_refunds_by_filter(package_name: str = "DASORP_TEST", **filters) -> list[dict]:
     clean = {k: v for k, v in filters.items() if v is not None}
+    if "date_from" in clean:
+        clean["date_from"] = clean["date_from"].isoformat()
+
     log.info("CLEAN FILTERS: %s", clean)
 
     return _call_proc_with_cursor(

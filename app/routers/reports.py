@@ -81,15 +81,16 @@ async def get_reports_data(
 
     if user.top_control != 1 and user.top_control != 2:
         log.warning(
-            "Forbidden GET /reports/data1c by user=%s, top_control=%s",
+            "Forbidden POST /reports/data1c by user=%s, top_control=%s",
             user_name,
             user.top_control
         )
-        raise HTTPException(status_code=403, detail="Forbidden to GET /reports/data1c")
+        raise HTTPException(status_code=403, detail="Forbidden to POST /reports/data1c")
 
-    log.info("GET /reports/data1c requested by user=%s, status=%s", user_name, status)
+    log.info("POST /reports/data1c requested by user=%s, status=%s", user_name, status)
 
     try:
+        log.info("FILTERS: %s", filters)
         refunds = get_refunds_by_filter(**filters.model_dump(exclude_none=True), package_name=PACKAGE_NAME)
 
         log.info(

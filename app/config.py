@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 hostname = "127.0.0.1"
 port = 5200
 LOG_PATH = "logs"
-debug = False
-PACKAGE_NAME = "DASORP"
+debug = True
+PACKAGE_NAME = "DASORP_TEST"
 
 templates = Jinja2Templates(directory="app/templates")
 

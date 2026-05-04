@@ -21,7 +21,6 @@
         </div>
       </div>
 
-
       <!-- ФИЛЬТРЫ для "Возвраты СО" -->
       <div class="grid grid-cols-3 gap-6 ml-2 mr-2">
         <div class="grid grid-rows-2 gap-4">
@@ -74,7 +73,7 @@
           </button>
         </div>
 
-        <div class="grid grid-rows-3 gap-2 w-full justify-items-end col-start-3" x-show="canSeeFilters" x-cloak>
+        <div class="grid grid-rows-3 grid-cols-2 gap-2 w-full justify-items-end col-start-3" x-show="canSeeFilters" x-cloak>
           <!-- № заявки -->
           <div class="form-control flex gap-2">
             <label class="label">
@@ -95,6 +94,16 @@
                    placeholder=""
                    class="input input-bordered w-40 h-8"
                    x-model="filters.refer_in">
+          </div>
+
+          <!-- Дата -->
+          <div class="form-control flex gap-2">
+            <label class="label">
+              <span class="label-text text-base">Дата:</span>
+            </label>
+            <input type="date"
+                   class="input input-bordered w-40 h-8"
+                   x-model="filters.date_from">
           </div>
 
           <div class="flex justify-end">
@@ -274,7 +283,6 @@
         </div>
       </div>
 
-
       <!-- ТАБЛИЦА ЛЮДИ -->
       <div class="overflow-x-auto h-auto bg-base-200 rounded-box shadow mt-10">
         <table x-show="selectedSiorID" x-cloak class="table table-xs table-pin-rows">
@@ -321,8 +329,6 @@
           </tbody>
         </table>
       </div>
-
-
 
       <!-- Формирование отчета -->
       <div class="mt-10">

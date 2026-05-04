@@ -65,6 +65,7 @@ function refundsTable() {
     filters: {
       sior_id: '',
       refer_in: '',
+      date_from: ''
     },
 
     async init() {
@@ -374,6 +375,7 @@ function refundsTable() {
       this.error = '';
 
       try {
+        console.log(filters);
         const response = await fetch(`/reports/data1c?status=${encodeURIComponent(this.statusFilter)}`, {method: 'POST',
                                                                            headers: {'Content-Type': 'application/json'},
                                                                            body: JSON.stringify(filters)
@@ -419,13 +421,9 @@ function refundsTable() {
 
     async resetFilters() {
       this.filters = {
-        sicid: '',
-        pay_date: '',
-        p_rnn: '',
-        knp: '',
-        sum_from: '',
-        sum_to: '',
-        period: ''
+        sior_id: '',
+        refer_in: '',
+        date: '',
       };
 
       this.rows = []
