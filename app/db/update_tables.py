@@ -1,9 +1,11 @@
 from fastapi import HTTPException
 from sqlalchemy import text
+
+from app.config import PACKAGE_NAME
 from app.db.engine import engine
 
 
-def bulk_accept_all(typ: str, post: str, fio: str, package_name: str = "DASORP_TEST") -> None:
+def bulk_accept_all(typ: str, post: str, fio: str) -> None:
     empt = None
 
     match typ:
@@ -24,7 +26,7 @@ def bulk_accept_all(typ: str, post: str, fio: str, package_name: str = "DASORP_T
 
     if code is None and type_payer is None:
         query = text(
-            f"BEGIN {package_name}.MANAGE.APPROVE_ALL(:post, :fio); END;"
+            f"BEGIN {PACKAGE_NAME}.MANAGE.APPROVE_ALL(:post, :fio); END;"
         )
 
         with engine.begin() as conn:
@@ -34,7 +36,7 @@ def bulk_accept_all(typ: str, post: str, fio: str, package_name: str = "DASORP_T
             })
     else:
         query = text(
-            f"BEGIN {package_name}.MANAGE.APPROVE_ALL(:code, :type_payer, :post, :fio); END;"
+            f"BEGIN {PACKAGE_NAME}.MANAGE.APPROVE_ALL(:code, :type_payer, :post, :fio); END;"
         )
 
         with engine.begin() as conn:
