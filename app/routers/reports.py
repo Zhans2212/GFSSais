@@ -14,13 +14,14 @@ from app.db.update_tables import bulk_accept_all
 from app.models.refund_filters_model import FilterParams
 from app.utils.get_excel_418 import rows_to_excel, rows_to_pdf
 from app.utils.logger import log
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
 
 class AcceptAllRequest(BaseModel):
     sior_ids: List[int]
 
-TODAY = datetime.today().strftime("%d.%m.%Y")
+TODAY = datetime.now(ZoneInfo("Asia/Almaty")).strftime("%d.%m.%Y")
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, user=Depends(login_required)):
